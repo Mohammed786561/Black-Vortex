@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Black Vortex FPS</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { 
+      font-family: 'Courier New', monospace; 
+      background: radial-gradient(circle at center, #0a0a1a 0%, #000 70%);
+      overflow: hidden;
+      color: #00ff88;
+    }
+    #hud {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      z-index: 100;
+      font-size: 24px;
+      text-shadow: 0 0 10px #00ff88;
+    }
+    #crosshair {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 24px;
+      height: 24px;
+      z-index: 100;
+      pointer-events: none;
+    }
+    .crosshair-line {
+      position: absolute;
+      background: #00ff88;
+      box-shadow: 0 0 8px #00ff88;
+    }
+    .crosshair-h { width: 24px; height: 2px; top: 11px; left: 0; }
+    .crosshair-v { width: 2px; height: 24px; top: 0; left: 11px; }
+    #instructions {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0,15,30,0.95);
+      padding: 30px;
+      border-radius: 15px;
+      border: 2px solid #00ff88;
+      box-shadow: 0 0 30px #00ff88;
+      text-align: center;
+      z-index: 200;
+      max-width: 400px;
+    }
+    canvas { display: block; cursor: none; }
+    .killfeed {
+      position: absolute;
+      right: 20px;
+      top: 20px;
+      z-index: 100;
+    }
+    .kill { 
+      font-size: 18px;
+      margin: 5px 0;
+      opacity: 0;
+      animation: fadeInOut 2s forwards;
+    }
+    @keyframes fadeInOut {
+      0% { opacity: 0; transform: translateY(20px); }
+      20% { opacity: 1; transform: translateY(0); }
+      80% { opacity: 1; transform: translateY(0); }
+      100% { opacity: 0; transform: translateY(-20px); }
+    }
+  </style>
+</head>
+<body>
+  <div id="hud">
+    SCORE: <span id="score">0</span> | KILLS: <span id="kills">0</span>
+  </div>
+  <div id="crosshair">
+    <div class="crosshair-line crosshair-h"></div>
+    <div class="crosshair-line crosshair-v"></div>
+  </div>
+  <div id="instructions">
+    <h1 style="font-size: 48px; margin-bottom: 20px; text-shadow: 0 0 20px #00ff88;">BLACK VORTEX</h1>
+    <p style="font-size: 20px; line-height: 1.6;">
+      <strong>CLICK TO ENTER THE VORTEX</strong><br>
+      Mouse: Look | Click: Shoot | WASD: Move
+    </p>
+  </div>
+  <div class="killfeed" id="killfeed"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/three@0.167.1/build/three.min.js"></script>
+  <script>
+    // RESIZE HANDLER
+    let windowSize = { w: innerWidth, h: innerHeight };
+    window.addEventListener('resize', () => {
+      windowSize = { w: innerWidth, h: innerHeight };
+      camera.aspect = windowSize.w / windowSize.h;
+      camera.updateProjectionMatrix();
+      renderer.setSize(windowSize.w, windowSize.h);
+    });
+
+    // SCENE SETUP
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.FogExp2(0x0a0a1a, 0.03);
+    const camera = new THREE.PerspectiveCamera(75, windowSize.w / windowSize.h, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(windowSize.w, windowSize.h);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.2;
+    document.body.appendChild(renderer.domElement);
+
+    // LIGHTING (NEON STYLE)
+    const ambient = new THREE.AmbientLight(0x404040, 0.4);
+    scene.add(ambient);
+    const dirLight = new THREE.DirectionalLight(0x00ff88, 1.5);
+    dirLight.position.set(10, 20, 5);
+    dirLight.castShadow = true;
+    dirLight.shadow.mapSize.width = 2048;
+    dirLight.shadow.mapSize.height = 2048;
+    dirLight.shadow.camera.near = 0.5;
+    dirLight.shadow.camera.far = 50;
+    scene.add(dirLight);
+
+    // GROUND (GRID TEXTURE)
+    const groundGeo = new THREE.PlaneGeometry(200, 200);
+    const groundMat = new THREE.MeshStandardMaterial({ 
+      color: 0x111122, 
+      roughness: 0.8,
+      metalness: 0.2
+    });
+    const ground = new THREE.Mesh(groundGeo, groundMat);
+    ground.rotation.x = -Math.PI / 2;
+    ground.receiveShadow = true;
+    scene.add(ground);
+
+    // GRID HELPER
+    const gridHelper = new THREE.GridHelper(200, 50, 0x00ff88, 0x004411);
+    scene.add(gridHelper);
+
+    // PLAYER SETUP
+    camera.position.set(0, 1.8, 0);
+    
+    // GUN MODEL (ATTACHED TO CAMERA)
+    const gunGroup = new THREE.Group();
+    const gunBody = new THREE.Mesh(
+      new THREE.BoxGeometry(0.25, 0.18, 1.2),
+      new THREE.MeshStandardMaterial({ color: 0x333366, metalness: 0.8, roughness: 0.2 })
+    );
+    const gunBarrel = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.08, 0.06, 0.8, 8),
+      new THREE.MeshStandardMaterial({ color: 0x222244, metalness: 0.9 })
+    );
+    gunBarrel.rotation.z = Math.PI / 2;
+    gunBarrel.position.set(0, 0, -0.9);
+    gunGroup.add(gunBody, gunBarrel);
+    gunGroup.position.set(0.4, -0.4, -0.8);
+    camera.add(gunGroup);
+
+    // MOUSE LOOK
+    let yaw = 0, pitch = 0;
+    document.addEventListener('mousemove', (e) => {
+      if (document.pointerLockElement === document.body) {
+        yaw -= e.movementX * 0.002;
+        pitch -= e.movementY * 0.002;
+        pitch = Math.max(-Math.PI/2 + 0.1, Math.min(Math.PI/2 - 0.1, pitch));
+        camera.rotation.set(pitch, yaw, 0);
+      }
+    });
+
+    // POINTER LOCK
+    document.body.addEventListener('click', () => {
+      document.body.requestPointerLock();
+      document.getElementById('instructions').style.display = 'none';
+    });
+
+    // WASD MOVEMENT
+    const keys = {};
+    document.addEventListener('keydown', e => keys[e.code] = true);
+    document.addEventListener('keyup', e => keys[e.code] = false);
+    const moveSpeed = 0.15;
+    const velocity = new THREE.Vector3();
+
+    // ENEMIES
+    let enemies = [];
+    let score = 0;
+    let kills = 0;
+    const killfeed = document.getElementById('killfeed');
+
+    function spawnEnemy() {
+      const enemyGroup = new THREE.Group();
+      
+      // Body
+      const bodyGeo = new THREE.CapsuleGeometry(0.4, 1.2);
+      const bodyMat = new THREE.MeshStandardMaterial({ 
+        color: 0xff4444,
+        emissive: 0x220000,
+        emissiveIntensity: 0.3 
+      });
+      const body = new THREE.Mesh(bodyGeo, bodyMat);
+      body.position.y = 0.8;
+      body.castShadow = true;
+      
+      // Head
+      const headGeo = new THREE.SphereGeometry(0.3);
+      const headMat = new THREE.MeshStandardMaterial({ color: 0xdd2222 });
+      const head = new THREE.Mesh(headGeo, headMat);
+      head.position.y = 1.8;
+      head.castShadow = true;
+      
+      enemyGroup.add(body, head);
+      enemyGroup.position.set(
+        (Math.random() - 0.5) * 80,
+        0,
+        (Math.random() - 0.5) * 80
+      );
+      scene.add(enemyGroup);
+      enemies.push(enemyGroup);
+    }
+
+    // SPAWN INITIAL ENEMIES
+    for (let i = 0; i < 10; i++) spawnEnemy();
+
+    // SHOOTING SYSTEM
+    document.addEventListener('mousedown', () => {
+      if (document.pointerLockElement !== document.body) return;
+      
+      // Gun recoil
+      gunGroup.position.z = -0.6;
+      setTimeout(() => gunGroup.position.z = -0.8, 80);
+      
+      // Raycast
+      const raycaster = new THREE.Raycaster();
+      raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
+      
+      const hits = raycaster.intersectObjects(enemies, true);
+      
+      if (hits.length > 0) {
+        const enemy = hits[0].object.parent; // Get enemy group
+        const hitMesh = hits[0].object;
+        
+        // Hit effect (flash + shake)
+        hitMesh.material.emissive.setHex(0xffffff);
+        setTimeout(() => hitMesh.material.emissive.setHex(0x000000), 100);
+        
+        // Kill
+        scene.remove(enemy);
+        enemies = enemies.filter(e => e !== enemy);
+        kills++;
+        score += 100;
+        
+        document.getElementById('score').textContent = score;
+        document.getElementById('kills').textContent = kills;
+        
+        // Killfeed
+        const killDiv = document.createElement('div');
+        killDiv.className = 'kill';
+        killDiv.textContent = `Enemy eliminated +100`;
+        killfeed.appendChild(killDiv);
+        setTimeout(() => killDiv.remove(), 2000);
+        
+        // Respawn
+        setTimeout(spawnEnemy, 1000);
+      }
+    });
+
+    // ENEMY AI
+    function updateEnemies() {
+      enemies.forEach((enemy, index) => {
+        const dir = new THREE.Vector3().subVectors(camera.position, enemy.position).normalize();
+        enemy.position.add(dir.multiplyScalar(0.025));
+        enemy.lookAt(camera.position);
+        
+        // Remove if too close
+        if (enemy.position.distanceTo(camera.position) < 1.5) {
+          scene.remove(enemy);
+          enemies.splice(index, 1);
+          spawnEnemy();
+        }
+      });
+    }
+
+    // ANIMATION LOOP
+    function animate() {
+      requestAnimationFrame(animate);
+      
+      // Movement
+      const direction = new THREE.Vector3();
+      if (keys['KeyW']) direction.z -= 1;
+      if (keys['KeyS']) direction.z += 1;
+      if (keys['KeyA']) direction.x -= 1;
+      if (keys['KeyD']) direction.x += 1;
+      
+      if (direction.length() > 0) {
+        direction.normalize();
+        direction.applyEuler(camera.rotation);
+        camera.position.add(direction.multiplyScalar(moveSpeed));
+      }
+      
+      updateEnemies();
+      renderer.render(scene, camera);
+    }
+
+    animate();
+  </script>
+</body>
+</html>

@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Black Vortex FPS - PERFECT</title>
+<style>body{margin:0;overflow:hidden;background:#000;font-family:monospace}#hud{position:fixed;top:10px;left:10px;color:lime;font-size:20px}#crosshair{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);font-size:30px;color:lime;pointer-events:none}</style>
+</head>
+<body>
+<div id="hud">Score: <span id="score">0</span> Kills: <span id="kills">0</span></div>
+<div id="crosshair">+</div>
+
+<script src="https://unpkg.com/three@0.126.1/build/three.min.js"></script>
+<script>
+let scene,camera,renderer,enemies=[],score=0,kills=0;
+let yaw=0,pitch=0,keys={};
+
+// INIT
+scene = new THREE.Scene();
+camera = new THREE.PerspectiveCamera(75,innerWidth/innerHeight,0.1,1000);
+renderer = new THREE.WebGLRenderer();
+renderer.setSize(innerWidth,innerHeight);
+document.body.appendChild(renderer.domElement);
+
+// LIGHT + FLOOR
+new THREE.AmbientLight(0x404040,0.6).addTo(scene);
+const light = new THREE.DirectionalLight(0xffffff,1);
+light.position.set(5,10,5);
+scene.add(light);
+const floor = new THREE.Mesh(
+  new THREE.PlaneGeometry(100,100),
+  new THREE.MeshLambertMaterial({color:0x333333})
+);
+floor.rotation.x=-Math.PI/2;
+scene.add(floor);
+
+// GUN
+const gun = new THREE.Mesh(
+  new THREE.BoxGeometry(.2,.15,.8),
+  new THREE.MeshLambertMaterial({color:0x4444aa})
+);
+gun.position.set(.4,-.3,-.7);
+camera.add(gun);
+
+// SPAWN ENEMIES
+function spawnEnemy(){
+  const e = new THREE.Mesh(
+    new THREE.BoxGeometry(1,1,1),
+    new THREE.MeshLambertMaterial({color:0xff4444})
+  );
+  e.position.set((Math.random()-.5)*80,0.5,(Math.random()-.5)*80);
+  scene.add(e);
+  enemies.push(e);
+}
+for(let i=0;i<10;i++)spawnEnemy();
+
+// INPUT
+document.addEventListener('click',()=>document.body.requestPointerLock());
+document.addEventListener('mousemove',e=>{
+  if(document.pointerLockElement){
+    yaw-=e.movementX*.002;
+    pitch-=e.movementY*.002;
+    pitch=Math.max(-Math.PI/2,Math.min(Math.PI/2,pitch));
+    camera.rotation.set(pitch,yaw,0);
+  }
+});
+document.addEventListener('keydown',e=>keys[e.code]=true);
+document.addEventListener('keyup',e=>keys[e.code]=false);
+
+// SHOOT
+document.addEventListener('mousedown',()=>{
+  if(!document.pointerLockElement)return;
+  gun.position.z-=.1;
+  setTimeout(()=>gun.position.z+=.1,50);
+  
+  const ray = new THREE.Raycaster();
+  ray.setFromCamera(new THREE.Vector2(0,0),camera);
+  const hit = ray.intersectObjects(enemies);
+  
+  if(hit.length){
+    const enemy = hit[0].object;
+    scene.remove(enemy);
+    enemies.splice(enemies.indexOf(enemy),1);
+    kills++;score+=100;
+    spawnEnemy();
+    document.getElementById('score').innerText=score;
+    document.getElementById('kills').innerText=kills;
+  }
+});
+
+// UPDATE
+function update(){
+  // Movement
+  const speed=.15;
+  const dir = new THREE.Vector3();
+  if(keys.KeyW)dir.z-=.5;
+  if(keys.KeyS)dir.z+=.5;
+  if(keys.KeyA)dir.x-=.5;
+  if(keys.KeyD)dir.x+=.5;
+  if(dir.length()){
+    dir.normalize();
+    dir.applyEuler(camera.rotation);
+    camera.position.add(dir.multiplyScalar(speed));
+  }
+  
+  // Enemies chase
+  enemies.forEach(e=>{
+    const toPlayer = new THREE.Vector3().subVectors(camera.position,e.position).normalize();
+    e.position.add(toPlayer.multiplyScalar(.025));
+    e.lookAt(camera.position);
+  });
+}
+
+// LOOP
+function loop(){
+  requestAnimationFrame(loop);
+  update();
+  renderer.render(scene,camera);
+}
+camera.position.y=1.6;
+loop();
+</script>
+</body>
+</html>
