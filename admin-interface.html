@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Black Vortex Admin Panel</title>
+    <style>
+        :root {
+            --bg-color: #0f0f1a;
+            --card-bg: #1a1a2e;
+            --text-color: #e0e0e0;
+            --text-muted: #8888aa;
+            --accent-color: #e94560;
+            --success-color: #00b894;
+            --danger-color: #d63031;
+            --warning-color: #fdcb6e;
+            --border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .admin-header {
+            background: linear-gradient(135deg, #1a1a2e, #0f0f1a);
+            border-bottom: 2px solid var(--border-color);
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+        .admin-title {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--text-color);
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin: 0;
+        }
+
+        .admin-title span {
+            color: var(--accent-color);
+            text-shadow: 0 0 10px rgba(233, 69, 96, 0.5);
+        }
+
+        .admin-actions {
+            display: flex;
+            gap: 15px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-color);
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .btn.primary {
+            background: var(--accent-color);
+            border-color: var(--accent-color);
+            color: white;
+        }
+
+        .btn.primary:hover {
+            box-shadow: 0 0 15px var(--accent-color);
+        }
+
+        .btn.success {
+            background: var(--success-color);
+            border-color: var(--success-color);
+            color: white;
+        }
+
+        .btn.danger {
+            background: var(--danger-color);
+            border-color: var(--danger-color);
+            color: white;
+        }
+
+        .admin-container {
+            flex: 1;
+            padding: 40px;
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 30px;
+        }
+
+        .sidebar {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            height: fit-content;
+        }
+
+        .sidebar h3 {
+            margin: 0 0 20px 0;
+            color: var(--accent-color);
+            border-bottom: 2px solid var(--accent-color);
+            padding-bottom: 10px;
+        }
+
+        .nav-item {
+            padding: 12px 15px;
+            margin: 5px 0;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-left: 4px solid transparent;
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-item.active {
+            background: rgba(233, 69, 96, 0.2);
+            border-left-color: var(--accent-color);
+            color: var(--accent-color);
+            font-weight: bold;
+        }
+
+        .main-content {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 30px;
+            min-height: 500px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--accent-color);
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .data-table th {
+            text-align: left;
+            padding: 15px;
+            border-bottom: 2px solid var(--border-color);
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .data-table td {
+            padding: 15px;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.9rem;
+        }
+
+        .data-table tr:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .badge.admin { background: rgba(233, 69, 96, 0.2); color: var(--accent-color); border: 1px solid rgba(233, 69, 96, 0.5); }
+        .badge.user { background: rgba(0, 184, 148, 0.2); color: var(--success-color); border: 1px solid rgba(0, 184, 148, 0.5); }
+
+        .action-btn {
+            padding: 6px 12px;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-color);
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.3s;
+        }
+
+        .action-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .action-btn.danger:hover {
+            background: rgba(214, 48, 49, 0.2);
+            border-color: var(--danger-color);
+        }
+
+        .login-form {
+            max-width: 400px;
+            margin: 100px auto;
+            background: var(--card-bg);
+            padding: 40px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            text-align: center;
+        }
+
+        .login-form h2 {
+            margin-bottom: 30px;
+            color: var(--accent-color);
+        }
+
+        .login-form input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-color);
+            font-size: 1rem;
+        }
+
+        .login-form input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .timestamp {
+            font-family: monospace;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+
+        .password-cell {
+            font-family: 'Courier New', monospace;
+            font-size: 0.8rem;
+            color: var(--accent-color);
+            letter-spacing: 1px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Admin Login Form -->
+    <div id="login-form" class="login-form">
+        <h2>🔒 Admin Access</h2>
+        <p style="color: var(--text-muted); margin-bottom: 30px;">Enter admin credentials to access user management</p>
+        
+        <input type="email" id="admin-email" placeholder="Admin Email" value="admin@blackvortex.com">
+        <input type="password" id="admin-password" placeholder="Admin Password" value="admin123">
+        
+        <button class="btn primary" onclick="adminLogin()">Login as Admin</button>
+        
+        <div id="login-error" style="color: var(--danger-color); margin-top: 15px; display: none;"></div>
+    </div>
+
+    <!-- Admin Dashboard -->
+    <div id="admin-dashboard" class="hidden">
+        <header class="admin-header">
+            <h1 class="admin-title">Black Vortex <span>Admin Panel</span></h1>
+            <div class="admin-actions">
+                <button class="btn success" onclick="loadUsers()">Refresh</button>
+                <button class="btn danger" onclick="logoutAdmin()">Logout</button>
+            </div>
+        </header>
+
+        <div class="admin-container">
+            <aside class="sidebar">
+                <h3>Navigation</h3>
+                <div class="nav-item active" onclick="switchTab('users')">Users</div>
+                <div class="nav-item" onclick="switchTab('stats')">Statistics</div>
+                <div class="nav-item" onclick="switchTab('logs')">Activity Logs</div>
+                
+                <div style="margin-top: 40px; padding: 15px; background: rgba(255, 255, 255, 0.05); border-radius: 8px; border: 1px solid var(--border-color);">
+                    <h4 style="margin: 0 0 10px 0; color: var(--accent-color);">Admin Info</h4>
+                    <p style="margin: 0; font-size: 0.9rem; color: var(--text-muted);">Role: System Administrator</p>
+                    <p style="margin: 5px 0 0 0; font-size: 0.9rem; color: var(--text-muted);">Access: Full User Management</p>
+                </div>
+            </aside>
+
+            <main class="main-content">
+                <!-- Users Tab -->
+                <div id="users-tab">
+                    <h2 style="margin-top: 0; color: var(--accent-color);">User Management</h2>
+                    
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <span class="stat-number" id="total-users">0</span>
+                            <div class="stat-label">Total Users</div>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-number" id="total-admins">0</span>
+                            <div class="stat-label">Admin Users</div>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-number" id="total-regular">0</span>
+                            <div class="stat-label">Regular Users</div>
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom: 20px;">
+                        <input type="text" id="search-users" placeholder="Search users by email..." style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-color);">
+                    </div>
+
+                    <div style="overflow-x: auto;">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Password (Hashed)</th>
+                                    <th>Role</th>
+                                    <th>Created</th>
+                                    <th>Last Login</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="users-table-body">
+                                <!-- Users will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Statistics Tab -->
+                <div id="stats-tab" class="hidden">
+                    <h2 style="margin-top: 0; color: var(--accent-color);">System Statistics</h2>
+                    
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <span class="stat-number" id="stat-total-users">0</span>
+                            <div class="stat-label">Total Users</div>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-number" id="stat-total-admins">0</span>
+                            <div class="stat-label">Admin Count</div>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-number" id="stat-total-regular">0</span>
+                            <div class="stat-label">Regular Users</div>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-number" id="stat-recent-reg">0</span>
+                            <div class="stat-label">Recent Registrations</div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 30px;">
+                        <h3 style="color: var(--accent-color);">Recent Activity</h3>
+                        <div id="recent-activity" style="margin-top: 15px;">
+                            <!-- Recent activity will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Logs Tab -->
+                <div id="logs-tab" class="hidden">
+                    <h2 style="margin-top: 0; color: var(--accent-color);">Activity Logs</h2>
+                    
+                    <div style="overflow-x: auto;">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Type</th>
+                                    <th>User ID</th>
+                                    <th>Email</th>
+                                    <th>Password</th>
+                                    <th>IP Address</th>
+                                    <th>Timestamp</th>
+                                </tr>
+                            </thead>
+                            <tbody id="logs-table-body">
+                                <!-- Logs will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        let isAdminLoggedIn = false;
+
+        // Admin Login
+        async function adminLogin() {
+            const email = document.getElementById('admin-email').value;
+            const password = document.getElementById('admin-password').value;
+            const errorDiv = document.getElementById('login-error');
+
+            try {
+                const response = await fetch('http://localhost:4000/api/admin-login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    isAdminLoggedIn = true;
+                    document.getElementById('login-form').classList.add('hidden');
+                    document.getElementById('admin-dashboard').classList.remove('hidden');
+                    loadUsers();
+                    loadStats();
+                    loadLogs();
+                } else {
+                    errorDiv.style.display = 'block';
+                    errorDiv.textContent = data.message || 'Invalid admin credentials';
+                }
+            } catch (err) {
+                errorDiv.style.display = 'block';
+                errorDiv.textContent = 'Could not connect to server';
+                console.error(err);
+            }
+        }
+
+        // Admin Logout
+        function logoutAdmin() {
+            isAdminLoggedIn = false;
+            document.getElementById('login-form').classList.remove('hidden');
+            document.getElementById('admin-dashboard').classList.add('hidden');
+            document.getElementById('admin-email').value = 'admin@blackvortex.com';
+            document.getElementById('admin-password').value = 'admin123';
+        }
+
+        // Load Users
+        async function loadUsers() {
+            if (!isAdminLoggedIn) return;
+
+            try {
+                const response = await fetch('http://localhost:4000/api/admin/users');
+                const data = await response.json();
+
+                const tbody = document.getElementById('users-table-body');
+                tbody.innerHTML = '';
+
+                if (data.users && data.users.length > 0) {
+                    data.users.forEach(user => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td style="font-family: monospace; color: var(--text-muted);">${user.id}</td>
+                            <td>${user.name || 'Unknown'}</td>
+                            <td>${user.email}</td>
+                            <td class="password-cell">${user.password}</td>
+                            <td><span class="badge ${user.role === 'admin' ? 'admin' : 'user'}">${user.role}</span></td>
+                            <td class="timestamp">${formatDate(user.createdAt)}</td>
+                            <td class="timestamp">${user.lastLogin ? formatDate(user.lastLogin) : 'Never'}</td>
+                            <td>
+                                ${user.role !== 'admin' ? `<button class="action-btn danger" onclick="deleteUser('${user.id}')">Delete</button>` : '<span style="color: var(--text-muted); font-size: 0.8rem;">Protected</span>'}
+                            </td>
+                        `;
+                        tbody.appendChild(row);
+                    });
+
+                    // Update stats
+                    document.getElementById('total-users').textContent = data.users.length;
+                    document.getElementById('total-admins').textContent = data.users.filter(u => u.role === 'admin').length;
+                    document.getElementById('total-regular').textContent = data.users.filter(u => u.role !== 'admin').length;
+                }
+            } catch (err) {
+                console.error('Error loading users:', err);
+            }
+        }
+
+        // Load Statistics
+        async function loadStats() {
+            if (!isAdminLoggedIn) return;
+
+            try {
+                const response = await fetch('http://localhost:4000/api/admin/stats');
+                const data = await response.json();
+
+                if (data.stats) {
+                    document.getElementById('stat-total-users').textContent = data.stats.totalUsers;
+                    document.getElementById('stat-total-admins').textContent = data.stats.totalAdmins;
+                    document.getElementById('stat-total-regular').textContent = data.stats.totalRegularUsers;
+                    document.getElementById('stat-recent-reg').textContent = data.stats.recentRegistrations.length;
+
+                    // Display recent registrations
+                    const activityDiv = document.getElementById('recent-activity');
+                    activityDiv.innerHTML = '';
+                    
+                    data.stats.recentRegistrations.forEach(reg => {
+                        const div = document.createElement('div');
+                        div.style.padding = '10px';
+                        div.style.marginBottom = '10px';
+                        div.style.background = 'rgba(255, 255, 255, 0.05)';
+                        div.style.borderRadius = '6px';
+                        div.style.border = '1px solid var(--border-color)';
+                        div.innerHTML = `
+                            <strong>${reg.name}</strong> (${reg.email})<br>
+                            <span class="timestamp">Registered: ${formatDate(reg.date)}</span>
+                        `;
+                        activityDiv.appendChild(div);
+                    });
+                }
+            } catch (err) {
+                console.error('Error loading stats:', err);
+            }
+        }
+
+        // Load Logs
+        async function loadLogs() {
+            if (!isAdminLoggedIn) return;
+
+            try {
+                const response = await fetch('http://localhost:4000/api/admin-data');
+                const logs = await response.json();
+
+                const tbody = document.getElementById('logs-table-body');
+                tbody.innerHTML = '';
+
+                if (logs && logs.length > 0) {
+                    logs.forEach(log => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td><span class="badge ${log.type === 'LOGIN_SUCCESS' ? 'user' : 'admin'}">${log.type || 'EVENT'}</span></td>
+                            <td style="font-family: monospace; color: var(--text-muted);">${log.id}</td>
+                            <td>${log.email}</td>
+                            <td class="password-cell">${log.password}</td>
+                            <td style="font-family: monospace; color: var(--text-muted);">${log.ip || 'Unknown'}</td>
+                            <td class="timestamp">${formatDate(log.timestamp)}</td>
+                        `;
+                        tbody.appendChild(row);
+                    });
+                }
+            } catch (err) {
+                console.error('Error loading logs:', err);
+            }
+        }
+
+        // Delete User
+        async function deleteUser(userId) {
+            if (!isAdminLoggedIn) return;
+
+            if (!confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`http://localhost:4000/api/admin/users/${userId}`, {
+                    method: 'DELETE'
+                });
+
+                const data = await response.json();
+
+                if (data.message) {
+                    alert(data.message);
+                    loadUsers();
+                }
+            } catch (err) {
+                console.error('Error deleting user:', err);
+                alert('Error deleting user');
+            }
+        }
+
+        // Tab Switching
+        function switchTab(tabName) {
+            // Update navigation
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // Show/hide content
+            document.getElementById('users-tab').classList.add('hidden');
+            document.getElementById('stats-tab').classList.add('hidden');
+            document.getElementById('logs-tab').classList.add('hidden');
+
+            if (tabName === 'users') {
+                document.getElementById('users-tab').classList.remove('hidden');
+                loadUsers();
+            } else if (tabName === 'stats') {
+                document.getElementById('stats-tab').classList.remove('hidden');
+                loadStats();
+            } else if (tabName === 'logs') {
+                document.getElementById('logs-tab').classList.remove('hidden');
+                loadLogs();
+            }
+        }
+
+        // Utility Functions
+        function formatDate(dateString) {
+            if (!dateString) return 'Unknown';
+            const date = new Date(dateString);
+            return date.toLocaleString();
+        }
+
+        // Search Users
+        document.getElementById('search-users').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const rows = document.querySelectorAll('#users-table-body tr');
+            
+            rows.forEach(row => {
+                const email = row.children[2].textContent.toLowerCase();
+                const name = row.children[1].textContent.toLowerCase();
+                
+                if (email.includes(searchTerm) || name.includes(searchTerm)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+
+        // Clear default credentials - require manual entry
+        window.addEventListener('load', () => {
+            // Clear any pre-filled credentials
+            document.getElementById('admin-email').value = '';
+            document.getElementById('admin-password').value = '';
+        });
+    </script>
+</body>
+</html>
