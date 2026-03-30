@@ -2,70 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Black Vortex — Simple Demo</title>
-  <link rel="stylesheet" href="css/simple.css">
+  <meta http-equiv="refresh" content="0; url=index.html">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Redirecting to Black Vortex</title>
 </head>
 <body>
-
-  <div class="container">
-    <h1>BLACK VORTEX</h1>
-
-    <div class="menu">
-      <button onclick="showSection('play')">▶ Play</button>
-      <button onclick="showSection('loadout')">🔫 Loadout</button>
-      <button onclick="showSection('maps')">🗺 Maps</button>
-    </div>
-
-    <!-- PLAY -->
-    <div id="play" class="section">
-      <h2>Start Game</h2>
-      <button onclick="startGame()">Start Match</button>
-      <p id="gameStatus"></p>
-    </div>
-
-    <!-- LOADOUT -->
-    <div id="loadout" class="section hidden">
-      <h2>Select Loadout</h2>
-
-      <div class="card" onclick="selectLoadout('Sniper Class')">
-        <h3>Sniper Class</h3>
-        <p>Sniper + Pistol</p>
-      </div>
-
-      <div class="card" onclick="selectLoadout('Heavy Class')">
-        <h3>Heavy Class</h3>
-        <p>Shotgun + Minigun</p>
-      </div>
-
-      <div class="card" onclick="selectLoadout('Assault Class')">
-        <h3>Assault Class</h3>
-        <p>Rifle + SMG</p>
-      </div>
-
-      <p id="selectedLoadout"></p>
-    </div>
-
-    <!-- MAPS -->
-    <div id="maps" class="section hidden">
-      <h2>Select Map</h2>
-
-      <div class="card" onclick="selectMap('Desert Storm')">
-        <h3>Desert Storm</h3>
-      </div>
-
-      <div class="card" onclick="selectMap('Night City')">
-        <h3>Night City</h3>
-      </div>
-
-      <div class="card" onclick="selectMap('Frozen Base')">
-        <h3>Frozen Base</h3>
-      </div>
-
-      <p id="selectedMap"></p>
-    </div>
-
-  </div>
-
-  <script src="js/simple.js"></script>
+  <script>window.location.replace('index.html');</script>
 </body>
 </html>

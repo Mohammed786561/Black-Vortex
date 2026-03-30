@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Black Vortex Match Hub - Enhanced</title>
+  <style>
+    :root {
+      --panel: rgba(8, 16, 25, 0.78);
+      --line: rgba(255,255,255,0.1);
+      --text: #eef7ff;
+      --muted: #9db4c6;
+      --accent: #59d0ff;
+      --success: #66f1a7;
+      --warning: #f7d56b;
+      --danger: #ff6f8f;
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(89, 208, 255, 0.2), transparent 30%),
+        radial-gradient(circle at bottom right, rgba(255, 95, 126, 0.18), transparent 28%),
+        linear-gradient(180deg, #04080c 0%, #08111a 100%);
+      overflow-x: hidden;
+    }
+    .shell {
+      width: min(1200px, calc(100vw - 32px));
+      margin: 0 auto;
+      padding: 24px 0 40px;
+    }
+    .hero, .panel, .profile, .launch {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      backdrop-filter: blur(14px);
+      box-shadow: 0 18px 60px rgba(0,0,0,0.28);
+      transition: var(--transition);
+    }
+    .hero {
+      padding: 32px;
+      margin-bottom: 22px;
+      display: grid;
+      grid-template-columns: 1.4fr 1fr;
+      gap: 20px;
+    }
+    .eyebrow {
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      font-size: 12px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .eyebrow .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--success);
+      box-shadow: 0 0 8px var(--success);
+      animation: pulse 2s infinite;
+    }
+    .eyebrow.warn .status-dot { background: var(--warning); box-shadow: 0 0 8px var(--warning); }
+    .eyebrow.error .status-dot { background: var(--danger); box-shadow: 0 0 8px var(--danger); }
+    @keyframes pulse {
+      0% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.2); opacity: 0.7; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    h1 {
+      margin: 10px 0 12px;
+      font-size: clamp(44px, 7vw, 82px);
+      line-height: 0.95;
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      background: linear-gradient(135deg, var(--text), var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .hero p, .panel p { color: var(--muted); line-height: 1.6; }
+    .hero-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 18px;
+    }
+    .info-box {
+      padding: 14px;
+      border-radius: 18px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      transition: var(--transition);
+    }
+    .info-box:hover {
+      transform: translateY(-2px);
+      border-color: rgba(89,208,255,0.4);
+      background: rgba(89,208,255,0.08);
+    }
+    .info-box span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+    .info-box strong { font-size: 24px; }
+    .preview {
+      border-radius: 22px;
+      padding: 18px;
+      background:
+        linear-gradient(160deg, rgba(89,208,255,0.18), rgba(255,95,126,0.18)),
+        rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 280px;
+      transition: var(--transition);
+    }
+    .preview:hover {
+      border-color: rgba(89,208,255,0.4);
+      transform: translateY(-2px);
+    }
+    .preview-map {
+      padding: 18px;
+      border-radius: 18px;
+      background: rgba(2, 7, 11, 0.42);
+      border: 1px solid rgba(255,255,255,0.08);
+      min-height: 180px;
+      display: flex;
+      align-items: end;
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      position: relative;
+      overflow: hidden;
+    }
+    .preview-map::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: radial-gradient(circle at center, rgba(89,208,255,0.1) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 22px;
+    }
+    .profile { padding: 22px; height: fit-content; }
+    .profile h2, .panel h2 {
+      margin: 0 0 14px;
+      font-size: 16px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .statline { display: flex; justify-content: space-between; margin: 12px 0; }
+    .statline strong { color: var(--accent); }
+    .history {
+      margin-top: 18px;
+      display: grid;
+      gap: 10px;
+    }
+    .history-item {
+      padding: 12px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      transition: var(--transition);
+    }
+    .history-item:hover {
+      transform: translateX(4px);
+      border-color: rgba(89,208,255,0.4);
+    }
+    .history-item strong {
+      display: block;
+      color: var(--accent);
+      margin-bottom: 4px;
+    }
+    .history-item small {
+      color: var(--muted);
+      line-height: 1.4;
+    }
+    .panel { padding: 22px; }
+    .selector-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+    }
+    .choice {
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.04);
+      padding: 14px;
+      cursor: pointer;
+      transition: var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+    .choice::before {
+      content: '';
+      position: absolute;
+      top: 0; left: -100%;
+      width: 100%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+      transition: left 0.5s;
+    }
+    .choice:hover::before { left: 100%; }
+    .choice:hover { transform: translateY(-2px); border-color: rgba(89,208,255,0.4); }
+    .choice.active {
+      border-color: rgba(89,208,255,0.7);
+      background: rgba(89,208,255,0.12);
+      box-shadow: 0 0 0 1px rgba(89,208,255,0.24) inset;
+      animation: popIn 0.3s ease-out;
+    }
+    @keyframes popIn {
+      from { transform: scale(0.95); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+    .choice strong { display: block; margin-bottom: 6px; }
+    .choice small { color: var(--muted); line-height: 1.5; }
+    .field-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+    }
+    .field {
+      display: grid;
+      gap: 8px;
+    }
+    .field label {
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      font-weight: 700;
+    }
+    .field input, .field select {
+      width: 100%;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.05);
+      color: var(--text);
+      padding: 14px 16px;
+      font-size: 15px;
+      transition: var(--transition);
+    }
+    .field input:focus, .field select:focus {
+      outline: none;
+      border-color: rgba(89,208,255,0.6);
+      box-shadow: 0 0 0 3px rgba(89,208,255,0.1);
+    }
+    .launch {
+      margin-top: 22px;
+      padding: 22px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 20px;
+      align-items: center;
+      position: relative;
+    }
+    .launch::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: linear-gradient(180deg, rgba(89,208,255,0.05), transparent);
+      border-radius: 24px;
+      pointer-events: none;
+    }
+    button {
+      border: 0;
+      border-radius: 999px;
+      padding: 16px 24px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      color: #08131d;
+      background: linear-gradient(135deg, var(--accent), #8be6ff);
+      box-shadow: 0 8px 24px rgba(89,208,255,0.3);
+      transition: var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+    button::before {
+      content: '';
+      position: absolute;
+      top: 0; left: -100%;
+      width: 100%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+      transition: left 0.6s;
+    }
+    button:hover::before { left: 100%; }
+    button:hover { transform: translateY(-2px) scale(1.02); box-shadow: 0 12px 32px rgba(89,208,255,0.4); }
+    button:active { transform: translateY(0) scale(0.98); }
+    .secondary {
+      color: var(--text);
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.1);
+      box-shadow: none;
+    }
+    .secondary:hover { transform: translateY(-2px) scale(1.02); }
+    .launch-summary {
+      display: grid;
+      gap: 8px;
+      color: var(--muted);
+    }
+    .launch-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+    .alert {
+      padding: 14px 18px;
+      border-radius: 16px;
+      margin-bottom: 18px;
+      border: 1px solid rgba(255,255,255,0.1);
+      display: none;
+    }
+    .alert.show { display: block; animation: slideDown 0.3s ease-out; }
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .alert.success { background: rgba(102, 241, 167, 0.15); border-color: rgba(102, 241, 167, 0.3); color: #d8f4ff; }
+    .alert.warn { background: rgba(247, 213, 107, 0.15); border-color: rgba(247, 213, 107, 0.3); color: #fff7e6; }
+    .alert.error { background: rgba(255, 111, 143, 0.15); border-color: rgba(255, 111, 143, 0.3); color: #ffe6ee; }
+    .loading {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+    }
+    .loading::after {
+      content: '';
+      width: 16px; height: 16px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top: 2px solid var(--text);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    @media (max-width: 900px) {
+      .hero, .grid, .launch { grid-template-columns: 1fr; display: grid; }
+      .launch-actions { justify-content: stretch; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <section class="hero">
+      <div>
+        <div class="eyebrow" id="serverStatus">
+          <span class="status-dot"></span>
+          <span>Server Status</span>
+        </div>
+        <h1>Black Vortex</h1>
+        <p>Enhanced online arena play with improved matchmaking, better UI, and comprehensive error handling. Pick a queue size, map, loadout, and operator, then join a real match.</p>
+        <div class="hero-grid">
+          <div class="info-box"><span>Queues</span><strong>4</strong></div>
+          <div class="info-box"><span>Maps</span><strong>4</strong></div>
+          <div class="info-box"><span>Operators</span><strong>4</strong></div>
+        </div>
+      </div>
+      <div class="preview">
+        <div class="preview-map" id="previewMap">Neon Foundry</div>
+        <div>
+          <div class="eyebrow">Current Queue</div>
+          <p id="previewText">A tactical `1v1` on Neon Foundry with the Assault Set. Clean lanes, quick rotations, and fast respawn pressure.</p>
+        </div>
+      </div>
+    </section>
+
+    <div class="alert" id="alertBox"></div>
+
+    <section class="grid">
+      <aside class="profile">
+        <h2>Operator Record</h2>
+        <div class="statline"><span>Rank</span><strong id="profileRank">Rookie</strong></div>
+        <div class="statline"><span>XP</span><strong id="profileXp">0</strong></div>
+        <div class="statline"><span>Credits</span><strong id="profileCredits">0</strong></div>
+        <div class="statline"><span>Matches</span><strong id="profileMatches">0</strong></div>
+        <div class="statline"><span>Wins</span><strong id="profileWins">0</strong></div>
+        <div class="statline"><span>Best Score</span><strong id="profileBest">0</strong></div>
+        <div class="statline"><span>Favorite Queue</span><strong id="profileQueue">1v1</strong></div>
+        <h2 style="margin-top:22px;">Recent Matches</h2>
+        <div class="history" id="recentMatches"></div>
+      </aside>
+
+      <div>
+        <section class="panel">
+          <h2>Choose Team Size</h2>
+          <p>Each queue groups players by the exact size you request so duels stay duels and team fights stay team fights.</p>
+          <div class="selector-grid" id="modeChoices"></div>
+        </section>
+
+        <section class="panel" style="margin-top:22px;">
+          <h2>Choose Map</h2>
+          <p>These are original Black Vortex arenas built for online sightlines, flanks, and team pushes.</p>
+          <div class="selector-grid" id="mapChoices"></div>
+        </section>
+
+        <section class="panel" style="margin-top:22px;">
+          <h2>Choose Loadout</h2>
+          <p>Each loadout changes health, fire cadence, and movement feel so fights stay readable and competitive.</p>
+          <div class="selector-grid" id="loadoutChoices"></div>
+          <div id="gunStats" style="margin-top:14px; color:#9db4c6;"></div>
+        </section>
+
+        <section class="panel" style="margin-top:22px;">
+          <h2>Choose Primary Gun</h2>
+          <p>Your primary gun sets the main feel of the match. You still carry a sidearm for weapon switching in-game.</p>
+          <div class="selector-grid" id="gunChoices"></div>
+        </section>
+
+        <section class="panel" style="margin-top:22px;">
+          <h2>Choose Operator</h2>
+          <p>Operators give each player a clearer identity in the match. Loadout controls weapon stats, while operator controls style and role flavor.</p>
+          <div class="selector-grid" id="operatorChoices"></div>
+        </section>
+
+        <section class="panel" style="margin-top:22px;">
+          <h2>Customize Character</h2>
+          <p>Personalize your operator's appearance and voice to make your presence felt on the battlefield.</p>
+          <div class="character-customizer">
+            <!-- Skin Selection -->
+            <div class="selector-grid" id="skinChoices"></div>
+
+            <!-- Voice Lines (if applicable) -->
+            <div class="field-grid" style="margin-top: 14px;">
+              <div class="field">
+                <label for="voiceLines">Voice Lines</label>
+                <select id="voiceLines">
+                  <option value="default">Default</option>
+                  <option value="aggressive">Aggressive</option>
+                  <option value="tactical">Tactical</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel" style="margin-top:22px;">
+          <h2>Operator Setup</h2>
+          <p>Set the display name and region hint the online client uses when you join queue.</p>
+          <div class="field-grid">
+            <div class="field">
+              <label for="playerName">Player Name</label>
+              <input id="playerName" type="text" maxlength="24" placeholder="Operative">
+            </div>
+            <div class="field">
+              <label for="regionHint">Region Hint</label>
+              <select id="regionHint">
+                <option value="NA-East">NA-East</option>
+                <option value="NA-Central">NA-Central</option>
+                <option value="NA-West">NA-West</option>
+              </select>
+            </div>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <section class="launch">
+      <div class="launch-summary" id="launchSummary"></div>
+      <div class="launch-actions">
+        <button id="playButton">
+          <span id="playButtonText">Join Online Match</span>
+          <span class="loading" id="playButtonLoading" style="display:none;">Connecting</span>
+        </button>
+        <button class="secondary" id="practiceButton">Practice Offline</button>
+        <button class="secondary" id="resetButton">Reset Profile</button>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const modes = {
+      '1v1': { name: '1v1 Duel', summary: 'One opponent, fast reads, clean angles, and quick queue targets.' },
+      '2v2': { name: '2v2 Strike', summary: 'Tight team fights and quick trades with one partner.' },
+      '3v3': { name: '3v3 Squad', summary: 'Balanced mid-size team play with stronger rotations.' },
+      '4v4': { name: '4v4 Clash', summary: 'Full Black Vortex arena pressure with layered crossfire and pushes.' }
+    };
+    const maps = {
+      'Neon Foundry': 'Molten core lanes, split catwalks, and a dangerous center route.',
+      'Dust Sector 9': 'Long desert lines with refinery cover and hard flank timings.',
+      'Skybreak Port': 'Rooftop cargo lanes, exposed crossings, and vertical pressure.',
+      'Obsidian Labs': 'Close mid-range corridors with mirrored entries and quick recovery paths.'
+    };
+    const loadouts = {
+      'Sniper Set': 'High damage, low health, and long-angle control.',
+      'Heavy Set': 'Big health pool and close-range stopping power.',
+      'Stealth Set': 'Fast movement and aggressive spray pressure.',
+      'Assault Set': 'Balanced all-around rifle handling and sustain.',
+      'Tactical Set': 'Sharper precision and disciplined recoil control.'
+    };
+    const guns = {
+      'AK-47': { damage: 34, fireRate: 600, reloadTime: 2.8, summary: 'Heavy rifle recoil with strong close-mid pressure.' },
+      'M4A1': { damage: 29, fireRate: 760, reloadTime: 2.4, summary: 'Stable all-round rifle built for clean sustained fights.' },
+      'Vector SMG': { damage: 20, fireRate: 940, reloadTime: 2.1, summary: 'Fast spray weapon for aggressive entry routes.' },
+      'Rail Lance': { damage: 70, fireRate: 85, reloadTime: 3.1, summary: 'Long-range single-shot rifle for hold angles.' },
+      'Breach Shotgun': { damage: 16, fireRate: 90, reloadTime: 2.9, summary: 'Close-range burst weapon with lane denial power.' }
+    };
+    const operators = {
+      Rift: 'Aggressive entry fragger with a fast, sharp arena profile.',
+      Nova: 'Balanced frontline operator built for clean rifle fights.',
+      Ghost: 'Light-footed scout built around off-angle pressure.',
+      Bulwark: 'Heavy tactical operator with a plated defensive silhouette.'
+    };
+    const skins = {
+      'Neon Pulse': 'Electric blue and cyan accents that glow in low light.',
+      'Shadow Veil': 'Dark matte finish with subtle reflective highlights.',
+      'Crimson Edge': 'Bold red and black scheme with tactical detailing.',
+      'Arctic Camo': 'Frosty white and gray patterns for cold environments.',
+      'Gold Standard': 'Premium gold plating with polished chrome accents.',
+      'Digital Ghost': 'Holographic digital camouflage with shifting patterns.'
+    };
+    const voices = {
+      default: 'Standard professional tone',
+      aggressive: 'Intense and commanding voice',
+      tactical: 'Calm and strategic communication'
+    };
+    const state = {
+      mode: '1v1',
+      map: 'Neon Foundry',
+      loadout: 'Assault Set',
+      primaryGun: 'M4A1',
+      operator: 'Nova',
+      skin: 'Neon Pulse',
+      voice: 'default'
+    };
+    const profile = JSON.parse(localStorage.getItem('blackVortexProfile') || '{"xp":0,"credits":0,"rank":"Rookie","bestScore":0,"wins":0,"matches":0,"favoriteQueue":"1v1","player":"Operative","region":"NA-East","operator":"Nova","skin":"Neon Pulse","voice":"default","primaryGun":"M4A1"}');
+    const recentMatches = JSON.parse(localStorage.getItem('blackVortexMatchHistory') || '[]');
+
+    // Enhanced server status checking
+    async function checkServerStatus() {
+      const statusEl = document.getElementById('serverStatus');
+      const dot = statusEl.querySelector('.status-dot');
+      const text = statusEl.querySelector('span:last-child');
+      
+      try {
+        // Check auth server
+        const authResponse = await fetch('http://localhost:4000/health', { method: 'GET', cache: 'no-cache' });
+        const authOk = authResponse.ok;
+        
+        // Check multiplayer server
+        const mpResponse = await fetch('http://localhost:4010/health', { method: 'GET', cache: 'no-cache' });
+        const mpOk = mpResponse.ok;
+        
+        if (authOk && mpOk) {
+          statusEl.className = 'eyebrow';
+          text.textContent = 'All servers online';
+          dot.style.background = 'var(--success)';
+          dot.style.boxShadow = '0 0 8px var(--success)';
+          showAlert('success', 'All servers are running smoothly. Ready to play!');
+        } else if (authOk || mpOk) {
+          statusEl.className = 'eyebrow warn';
+          text.textContent = 'Partial service available';
+          dot.style.background = 'var(--warning)';
+          dot.style.boxShadow = '0 0 8px var(--warning)';
+          showAlert('warn', 'Some servers are offline. Check the setup guide for assistance.');
+        } else {
+          statusEl.className = 'eyebrow error';
+          text.textContent = 'Servers offline';
+          dot.style.background = 'var(--danger)';
+          dot.style.boxShadow = '0 0 8px var(--danger)';
+          showAlert('error', 'Both servers are offline. Please start them using the setup guide.');
+        }
+      } catch (error) {
+        statusEl.className = 'eyebrow error';
+        text.textContent = 'Cannot reach servers';
+        dot.style.background = 'var(--danger)';
+        dot.style.boxShadow = '0 0 8px var(--danger)';
+        showAlert('error', 'Network error: ' + error.message);
+      }
+    }
+
+    function showAlert(type, message) {
+      const alertBox = document.getElementById('alertBox');
+      alertBox.className = `alert ${type} show`;
+      alertBox.textContent = message;
+      setTimeout(() => {
+        alertBox.classList.remove('show');
+      }, 5000);
+    }
+
+    function renderChoices(containerId, items, key) {
+      const container = document.getElementById(containerId);
+      container.innerHTML = Object.entries(items).map(([id, value]) => {
+        const active = state[key] === id ? 'active' : '';
+        const description = typeof value === 'string' ? value : value.summary || value.description || value;
+        const label = typeof value === 'string' ? id : value.name || id;
+        return `<div class="choice ${active}" data-key="${key}" data-id="${id}"><strong>${label}</strong><small>${description}</small></div>`;
+      }).join('');
+    }
+
+    function syncProfile() {
+      document.getElementById('profileRank').textContent = profile.rank || 'Rookie';
+      document.getElementById('profileXp').textContent = profile.xp || 0;
+      document.getElementById('profileCredits').textContent = profile.credits || 0;
+      document.getElementById('profileMatches').textContent = profile.matches || 0;
+      document.getElementById('profileWins').textContent = profile.wins || 0;
+      document.getElementById('profileBest').textContent = profile.bestScore || 0;
+      document.getElementById('profileQueue').textContent = profile.favoriteQueue || '1v1';
+      document.getElementById('playerName').value = profile.player || 'Operative';
+      document.getElementById('regionHint').value = profile.region || 'NA-East';
+      state.operator = profile.operator || state.operator;
+      state.skin = profile.skin || state.skin;
+      state.voice = profile.voice || state.voice;
+      state.primaryGun = profile.primaryGun || state.primaryGun;
+      document.getElementById('voiceLines').value = state.voice;
+      document.getElementById('recentMatches').innerHTML = recentMatches.length
+        ? recentMatches.slice(0, 4).map(match => `
+            <div class="history-item">
+              <strong>${match.title}</strong>
+              <small>${match.map} - ${match.loadout}${match.operator ? ` - ${match.operator}` : ''}${match.primaryGun ? ` - ${match.primaryGun}` : ''}<br>Score ${match.score} - Kills ${match.kills} - ${match.win ? 'Win' : 'Loss'}</small>
+            </div>
+          `).join('')
+        : '<div class="history-item"><small>No matches played yet. Join a queue or start practice to build your record.</small></div>';
+    }
+
+    function updateGunStats(selectedGun) {
+      const gun = guns[selectedGun];
+      document.getElementById('gunStats').innerHTML = `
+        <strong style="color:#59d0ff;">${selectedGun}</strong>
+        <div>Damage: ${gun.damage}</div>
+        <div>Fire Rate: ${gun.fireRate} RPM</div>
+        <div>Reload: ${gun.reloadTime}s</div>
+        <div>${gun.summary}</div>
+      `;
+    }
+
+    function syncPreview() {
+      const player = (document.getElementById('playerName')?.value || 'Operative').trim() || 'Operative';
+      state.voice = document.getElementById('voiceLines')?.value || state.voice;
+      document.getElementById('previewMap').textContent = state.map;
+      document.getElementById('previewText').textContent = `${modes[state.mode].name} on ${state.map} with the ${state.loadout}, ${state.primaryGun}, ${state.operator}, and ${state.skin}. ${maps[state.map]}`;
+      document.getElementById('launchSummary').innerHTML = `
+        <strong style="color:#59d0ff; font-size:22px;">${modes[state.mode].name}</strong>
+        <span>Player: ${player}</span>
+        <span>Operator: ${state.operator}</span>
+        <span>Skin: ${state.skin}</span>
+        <span>Voice: ${state.voice}</span>
+        <span>Map: ${state.map}</span>
+        <span>Loadout: ${state.loadout}</span>
+        <span>Primary Gun: ${state.primaryGun}</span>
+        <span>${modes[state.mode].summary}</span>
+      `;
+      renderChoices('modeChoices', modes, 'mode');
+      renderChoices('mapChoices', maps, 'map');
+      renderChoices('loadoutChoices', loadouts, 'loadout');
+      renderChoices('gunChoices', guns, 'primaryGun');
+      renderChoices('operatorChoices', operators, 'operator');
+      renderChoices('skinChoices', skins, 'skin');
+      updateGunStats(state.primaryGun);
+      document.querySelectorAll('.choice').forEach(choice => {
+        choice.addEventListener('click', () => {
+          state[choice.dataset.key] = choice.dataset.id;
+          syncPreview();
+        });
+      });
+    }
+
+    syncProfile();
+    syncPreview();
+    checkServerStatus();
+
+    // Auto-check server status every 30 seconds
+    setInterval(checkServerStatus, 30000);
+
+    document.getElementById('playerName').addEventListener('input', syncPreview);
+    document.getElementById('regionHint').addEventListener('change', syncPreview);
+    document.getElementById('voiceLines').addEventListener('change', syncPreview);
+
+    document.getElementById('playButton').addEventListener('click', async () => {
+      const playBtn = document.getElementById('playButton');
+      const playText = document.getElementById('playButtonText');
+      const playLoading = document.getElementById('playButtonLoading');
+      
+      playBtn.disabled = true;
+      playText.style.display = 'none';
+      playLoading.style.display = 'inline-flex';
+
+      try {
+        // Validate server status before proceeding
+        const authResponse = await fetch('http://localhost:4000/health');
+        const mpResponse = await fetch('http://localhost:4010/health');
+        
+        if (!authResponse.ok || !mpResponse.ok) {
+          throw new Error('Servers are not responding. Please start both servers first.');
+        }
+
+        const player = (document.getElementById('playerName').value || 'Operative').trim().slice(0, 24) || 'Operative';
+        const region = document.getElementById('regionHint').value;
+        profile.player = player;
+        profile.region = region;
+        profile.favoriteQueue = state.mode;
+        profile.operator = state.operator;
+        profile.skin = state.skin;
+        profile.voice = state.voice;
+        profile.primaryGun = state.primaryGun;
+        localStorage.setItem('blackVortexProfile', JSON.stringify(profile));
+        localStorage.setItem('blackVortexGame', JSON.stringify({
+          mode: state.mode,
+          map: state.map,
+          loadout: state.loadout,
+          primaryGun: state.primaryGun,
+          operator: state.operator,
+          skin: state.skin,
+          voice: state.voice,
+          player,
+          region
+        }));
+        
+        window.location.href = `online-match.html?mode=${encodeURIComponent(state.mode)}&map=${encodeURIComponent(state.map)}&loadout=${encodeURIComponent(state.loadout)}&primaryGun=${encodeURIComponent(state.primaryGun)}&operator=${encodeURIComponent(state.operator)}&skin=${encodeURIComponent(state.skin)}&voice=${encodeURIComponent(state.voice)}&name=${encodeURIComponent(player)}&region=${encodeURIComponent(region)}`;
+      } catch (error) {
+        showAlert('error', 'Connection failed: ' + error.message);
+        playBtn.disabled = false;
+        playText.style.display = 'inline';
+        playLoading.style.display = 'none';
+      }
+    });
+
+    document.getElementById('practiceButton').addEventListener('click', () => {
+      const player = (document.getElementById('playerName').value || 'Operative').trim().slice(0, 24) || 'Operative';
+      profile.player = player;
+      profile.favoriteQueue = state.mode;
+      profile.operator = state.operator;
+      profile.skin = state.skin;
+      profile.voice = state.voice;
+      profile.primaryGun = state.primaryGun;
+      localStorage.setItem('blackVortexProfile', JSON.stringify(profile));
+      localStorage.setItem('blackVortexGame', JSON.stringify({
+        mode: 'practice',
+        map: state.map,
+        loadout: state.loadout,
+        primaryGun: state.primaryGun,
+        operator: state.operator,
+        skin: state.skin,
+        voice: state.voice,
+        player
+      }));
+      window.location.href = `ultimate-black-vortex-fps.html?mode=practice&map=${encodeURIComponent(state.map)}&loadout=${encodeURIComponent(state.loadout)}`;
+    });
+
+    document.getElementById('resetButton').addEventListener('click', () => {
+      if (confirm('Are you sure you want to reset your profile and match history?')) {
+        localStorage.removeItem('blackVortexProfile');
+        localStorage.removeItem('blackVortexMatchHistory');
+        window.location.reload();
+      }
+    });
+  </script>
+</body>
+</html>

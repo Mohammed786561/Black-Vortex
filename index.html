@@ -1,1972 +1,727 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Black Vortex — Arena</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Black Vortex Match Hub</title>
   <style>
     :root {
-      --bg-color: #1a1a2e;
-      --ui-color: #e94560;
-      --text-color: #ffffff;
-      --gun-color: #2d3436;
-      --accent-color: #0984e3;
+      --panel: rgba(8, 16, 25, 0.78);
+      --line: rgba(255,255,255,0.1);
+      --text: #eef7ff;
+      --muted: #9db4c6;
+      --accent: #59d0ff;
     }
-
+    * { box-sizing: border-box; }
     body {
       margin: 0;
-      padding: 0;
-      background-color: var(--bg-color);
-      color: var(--text-color);
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      overflow: hidden;
-      user-select: none;
-    }
-
-    canvas {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      z-index: -1;
-    }
-
-    .app {
       min-height: 100vh;
-      position: relative;
+      color: var(--text);
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(89, 208, 255, 0.2), transparent 30%),
+        radial-gradient(circle at bottom right, rgba(255, 95, 126, 0.18), transparent 28%),
+        linear-gradient(180deg, #04080c 0%, #08111a 100%);
     }
-
-    .nav {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 20px 40px;
-      background: rgba(0, 0, 0, 0.3);
-      backdrop-filter: blur(10px);
-      border-bottom: 2px solid rgba(255, 255, 255, 0.1);
-      position: sticky;
-      top: 0;
-      z-index: 100;
+    .shell {
+      width: min(1200px, calc(100vw - 32px));
+      margin: 0 auto;
+      padding: 24px 0 40px;
     }
-
-    .brand {
-      font-size: 32px;
-      font-weight: bold;
-      color: var(--ui-color);
+    .hero, .panel, .profile, .launch {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      backdrop-filter: blur(14px);
+      box-shadow: 0 18px 60px rgba(0,0,0,0.28);
+    }
+    .hero {
+      padding: 32px;
+      margin-bottom: 22px;
+      display: grid;
+      grid-template-columns: 1.4fr 1fr;
+      gap: 20px;
+    }
+    .eyebrow {
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    h1 {
+      margin: 10px 0 12px;
+      font-size: clamp(44px, 7vw, 82px);
+      line-height: 0.95;
       text-transform: uppercase;
       letter-spacing: 3px;
-      text-shadow: 4px 4px 0 #000;
     }
-
-    .nav-links {
-      display: flex;
-      gap: 20px;
+    .hero p, .panel p { color: var(--muted); line-height: 1.6; }
+    .hero-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 18px;
     }
-
-    .nav-links a {
-      color: var(--text-color);
-      text-decoration: none;
-      font-size: 18px;
-      font-weight: bold;
-      padding: 10px 20px;
-      border-radius: 5px;
-      transition: all 0.3s;
-      border: 2px solid transparent;
+    .info-box {
+      padding: 14px;
+      border-radius: 18px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
     }
-
-    .nav-links a:hover {
-      background: rgba(255, 255, 255, 0.1);
-      border-color: var(--accent-color);
-    }
-
-    .nav-links a.active {
-      background: var(--ui-color);
-      color: white;
-      box-shadow: 0 0 10px var(--ui-color);
-    }
-
-    .nav-actions button {
-      background: var(--ui-color);
-      color: white;
-      border: none;
-      padding: 12px 24px;
-      font-size: 16px;
-      font-weight: bold;
-      border-radius: 5px;
-      cursor: pointer;
-      text-transform: uppercase;
-      transition: transform 0.1s;
-    }
-
-    .nav-actions button:hover {
-      transform: scale(1.05);
-    }
-
-    main {
-      padding: 40px;
-      min-height: calc(100vh - 80px);
-    }
-
-    .hero {
-      text-align: center;
-      padding: 60px 20px;
-      position: relative;
-      z-index: 2;
-    }
-
-    .hero-content {
-      max-width: 800px;
-      margin: 0 auto;
-    }
-
-    .hero h1 {
-      font-size: 80px;
-      margin: 0 0 10px 0;
-      background: linear-gradient(45deg, var(--ui-color), var(--accent-color));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      text-transform: uppercase;
-      letter-spacing: 10px;
-      text-shadow: 4px 4px 0 #000;
-      line-height: 1;
-    }
-
-    .hero-subtitle {
-      font-size: 24px;
-      color: #ccc;
-      margin-bottom: 40px;
-      font-weight: 300;
-    }
-
-    .hero-stats {
-      display: flex;
-      justify-content: center;
-      gap: 40px;
-      margin-bottom: 40px;
-      flex-wrap: wrap;
-    }
-
-    .stat-item {
-      text-align: center;
-    }
-
-    .stat-label {
+    .info-box span {
       display: block;
+      color: var(--muted);
       font-size: 12px;
-      color: #888;
       text-transform: uppercase;
       letter-spacing: 1px;
-      margin-bottom: 5px;
+      margin-bottom: 8px;
     }
-
-    .stat-value {
-      font-size: 24px;
-      font-weight: bold;
-      color: white;
-    }
-
-    .hero-actions {
-      display: flex;
-      justify-content: center;
-      gap: 20px;
-      flex-wrap: wrap;
-    }
-
-    .play-btn {
-      background: var(--ui-color);
-      color: white;
-      border: none;
-      padding: 20px 60px;
-      font-size: 24px;
-      font-weight: bold;
-      border-radius: 50px;
-      cursor: pointer;
-      text-transform: uppercase;
-      box-shadow: 0 0 20px var(--ui-color);
-      transition: all 0.3s;
-    }
-
-    .play-btn:hover {
-      transform: scale(1.1);
-      box-shadow: 0 0 40px var(--ui-color);
-    }
-
-    .btn.secondary {
-      background: transparent;
-      color: white;
-      border: 2px solid var(--accent-color);
-      padding: 15px 40px;
-      font-size: 18px;
-      font-weight: bold;
-      border-radius: 30px;
-      cursor: pointer;
-      transition: all 0.3s;
-    }
-
-    .btn.secondary:hover {
-      background: var(--accent-color);
-      transform: scale(1.05);
-    }
-
-    .weapon-banner {
-      display: flex;
-      justify-content: center;
-      gap: 40px;
-      margin: 40px 0;
-      opacity: 0.8;
-    }
-
-    .gun {
-      width: 80px;
-      height: 80px;
-      filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.5));
-      transition: transform 0.3s;
-    }
-
-    .gun:hover {
-      transform: translateY(-10px) scale(1.2);
-      opacity: 1;
-    }
-
-    .games-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 30px;
-      margin: 60px 0;
-    }
-
-    .game-card {
-      background: rgba(255, 255, 255, 0.05);
-      border: 2px solid rgba(255, 255, 255, 0.1);
-      border-radius: 15px;
-      overflow: hidden;
-      transition: all 0.3s;
-      position: relative;
-    }
-
-    .game-card:hover {
-      transform: translateY(-5px);
-      border-color: var(--ui-color);
-      box-shadow: 0 0 20px rgba(233, 69, 96, 0.3);
-    }
-
-    .game-card.featured {
-      border-color: var(--ui-color);
-      box-shadow: 0 0 30px rgba(233, 69, 96, 0.5);
-    }
-
-    .game-header {
-      padding: 20px;
-      background: rgba(233, 69, 96, 0.1);
-      border-bottom: 2px solid var(--ui-color);
-      position: relative;
-    }
-
-    .game-badge {
-      position: absolute;
-      top: -10px;
-      right: 20px;
-      background: var(--ui-color);
-      color: white;
-      padding: 5px 15px;
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: bold;
-      text-transform: uppercase;
-    }
-
-    .game-title {
-      font-size: 14px;
-      color: #888;
-      text-transform: uppercase;
-      letter-spacing: 2px;
-    }
-
-    .game-content {
-      display: grid;
-      grid-template-columns: 1fr 2fr;
-      gap: 20px;
-      padding: 20px;
-    }
-
-    .game-image {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: rgba(255, 255, 255, 0.05);
-      border-radius: 10px;
-      min-height: 120px;
-    }
-
-    .weapon-icons {
-      display: flex;
-      gap: 15px;
-    }
-
-    .weapon-icons img {
-      width: 40px;
-      height: 40px;
-      filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.5));
-      transition: transform 0.3s;
-    }
-
-    .weapon-icons img:hover {
-      transform: scale(1.2);
-    }
-
-    .coming-soon, .dev-mode {
-      background: rgba(255, 255, 255, 0.05);
-      border: 2px dashed #666;
-      border-radius: 10px;
-      min-height: 120px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .coming-soon-text, .dev-text {
-      font-size: 24px;
-      font-weight: bold;
-      color: #666;
-      text-transform: uppercase;
-      letter-spacing: 2px;
-    }
-
-    .game-info {
+    .info-box strong { font-size: 24px; }
+    .preview {
+      border-radius: 22px;
+      padding: 18px;
+      background:
+        linear-gradient(160deg, rgba(89,208,255,0.18), rgba(255,95,126,0.18)),
+        rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
       display: flex;
       flex-direction: column;
-      gap: 15px;
+      justify-content: space-between;
+      min-height: 280px;
     }
-
-    .game-info h3 {
-      margin: 0;
-      font-size: 24px;
-      color: white;
-    }
-
-    .game-info p {
-      margin: 0;
-      color: #ccc;
-      line-height: 1.6;
-    }
-
-    .game-meta {
+    .preview-map {
+      padding: 18px;
+      border-radius: 18px;
+      background: rgba(2, 7, 11, 0.42);
+      border: 1px solid rgba(255,255,255,0.08);
+      min-height: 180px;
       display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    .tag {
-      background: rgba(255, 255, 255, 0.1);
-      color: #888;
-      padding: 4px 12px;
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: bold;
-      text-transform: uppercase;
+      align-items: end;
+      font-size: 28px;
+      font-weight: 700;
       letter-spacing: 1px;
     }
-
-    .game-actions {
-      display: flex;
-      gap: 10px;
-      margin-top: auto;
+    .grid {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 22px;
     }
-
-    .btn.disabled {
-      background: #666;
-      color: #888;
-      border: 2px solid #444;
-      cursor: not-allowed;
-      opacity: 0.5;
-    }
-
-    .features-section {
-      margin: 80px 0;
-      text-align: center;
-    }
-
-    .section-title {
-      font-size: 48px;
-      color: var(--ui-color);
-      margin-bottom: 40px;
+    .profile { padding: 22px; height: fit-content; }
+    .profile h2, .panel h2 {
+      margin: 0 0 14px;
+      font-size: 16px;
+      letter-spacing: 1.5px;
       text-transform: uppercase;
-      letter-spacing: 5px;
-      text-shadow: 4px 4px 0 #000;
+      color: var(--muted);
     }
-
-    .features-grid {
+    .statline { display: flex; justify-content: space-between; margin: 12px 0; }
+    .statline strong { color: var(--accent); }
+    .history {
+      margin-top: 18px;
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 30px;
-    }
-
-    .feature-card {
-      background: rgba(255, 255, 255, 0.05);
-      padding: 30px;
-      border-radius: 15px;
-      border: 2px solid rgba(255, 255, 255, 0.1);
-      transition: all 0.3s;
-      text-align: center;
-    }
-
-    .feature-card:hover {
-      transform: translateY(-10px);
-      border-color: var(--ui-color);
-      background: rgba(233, 69, 96, 0.1);
-    }
-
-    .feature-icon {
-      font-size: 48px;
-      margin-bottom: 20px;
-      display: block;
-    }
-
-    .feature-card h3 {
-      margin: 0 0 15px 0;
-      font-size: 24px;
-      color: white;
-    }
-
-    .feature-card p {
-      margin: 0;
-      color: #ccc;
-      line-height: 1.6;
-    }
-
-    .stats-section {
-      margin: 80px 0;
-      text-align: center;
-    }
-
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 30px;
-    }
-
-    .stat-box {
-      background: rgba(255, 255, 255, 0.05);
-      padding: 30px;
-      border-radius: 15px;
-      border: 2px solid rgba(255, 255, 255, 0.1);
-      transition: all 0.3s;
-    }
-
-    .stat-box:hover {
-      transform: translateY(-5px);
-      border-color: var(--ui-color);
-    }
-
-    .stat-number {
-      font-size: 48px;
-      font-weight: bold;
-      color: var(--ui-color);
-      display: block;
-      margin-bottom: 10px;
-    }
-
-    .stat-label {
-      font-size: 14px;
-      color: #888;
-      text-transform: uppercase;
-      letter-spacing: 2px;
-    }
-
-    .dashboard-grid {
-      display: grid;
-      grid-template-columns: 300px 1fr;
-      gap: 20px;
-    }
-
-    .sidebar {
-      background: rgba(255, 255, 255, 0.05);
-      padding: 20px;
-      border-radius: 10px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    .sidebar h3 {
-      margin-top: 0;
-      color: var(--ui-color);
-      border-bottom: 2px solid var(--ui-color);
-      padding-bottom: 10px;
-    }
-
-    .friend-list {
-      display: flex;
-      flex-direction: column;
       gap: 10px;
     }
-
-    .friend-card {
-      display: flex;
-      align-items: center;
-      gap: 15px;
-      padding: 10px;
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 5px;
-      border-left: 4px solid var(--accent-color);
+    .history-item {
+      padding: 12px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
     }
-
-    .avatar {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      background: var(--accent-color);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: bold;
-      font-size: 18px;
+    .history-item strong {
+      display: block;
+      color: var(--accent);
+      margin-bottom: 4px;
     }
-
-    .muted {
+    .history-item small {
+      color: var(--muted);
+      line-height: 1.4;
+    }
+    .panel { padding: 22px; }
+    .selector-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+    }
+    .choice {
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.04);
+      padding: 14px;
+      cursor: pointer;
+      transition: transform 0.16s ease, border-color 0.16s ease, background 0.16s ease;
+    }
+    .choice:hover { transform: translateY(-2px); border-color: rgba(89,208,255,0.4); }
+    .choice.active {
+      border-color: rgba(89,208,255,0.7);
+      background: rgba(89,208,255,0.12);
+      box-shadow: 0 0 0 1px rgba(89,208,255,0.24) inset;
+    }
+    .choice strong { display: block; margin-bottom: 6px; }
+    .choice small { color: var(--muted); line-height: 1.5; }
+    .field-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+    }
+    .field {
+      display: grid;
+      gap: 8px;
+    }
+    .field label {
+      color: var(--muted);
       font-size: 12px;
-      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      font-weight: 700;
     }
-
-    .dash-main {
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
+    .field input, .field select {
+      width: 100%;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.05);
+      color: var(--text);
+      padding: 14px 16px;
+      font-size: 15px;
     }
-
-    .welcome {
-      background: rgba(255, 255, 255, 0.05);
-      padding: 20px;
-      border-radius: 10px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    .welcome h2 {
-      margin: 0;
-      color: var(--ui-color);
-    }
-
-    .cards {
+    .launch {
+      margin-top: 22px;
+      padding: 22px;
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      grid-template-columns: 1fr auto;
       gap: 20px;
+      align-items: center;
     }
-
-    .card {
-      background: rgba(255, 255, 255, 0.05);
-      padding: 20px;
-      border-radius: 10px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      transition: transform 0.3s;
+    button {
+      border: 0;
+      border-radius: 999px;
+      padding: 16px 24px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      color: #08131d;
+      background: linear-gradient(135deg, var(--accent), #8be6ff);
     }
-
-    .card:hover {
-      transform: translateY(-5px);
-      border-color: var(--ui-color);
+    .secondary {
+      color: var(--text);
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.1);
     }
-
-    .card h4 {
-      margin: 0 0 15px 0;
-      color: var(--ui-color);
+    .launch-summary {
+      display: grid;
+      gap: 8px;
+      color: var(--muted);
     }
-
-    .card-actions {
+    .launch-actions {
       display: flex;
-      gap: 10px;
+      gap: 12px;
       flex-wrap: wrap;
+      justify-content: flex-end;
     }
-
-    .btn {
-      padding: 10px 20px;
-      border-radius: 5px;
-      border: 2px solid transparent;
-      cursor: pointer;
-      font-weight: bold;
-      text-transform: uppercase;
-      transition: all 0.3s;
-      font-size: 14px;
+    @media (max-width: 900px) {
+      .hero, .grid, .launch { grid-template-columns: 1fr; display: grid; }
+      .launch-actions { justify-content: stretch; }
     }
-
-    .btn.primary {
-      background: var(--ui-color);
-      color: white;
-      border-color: var(--ui-color);
-    }
-
-    .btn.secondary {
-      background: var(--accent-color);
-      color: white;
-      border-color: var(--accent-color);
-    }
-
-    .btn.ghost {
-      background: transparent;
-      color: var(--text-color);
-      border-color: rgba(255, 255, 255, 0.3);
-    }
-
-    .btn.ghost:hover {
-      background: rgba(255, 255, 255, 0.1);
-    }
-
-    .btn.large {
-      padding: 20px 40px;
-      font-size: 20px;
-      font-weight: bold;
-      border-radius: 8px;
-      margin-bottom: 15px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 15px;
-      width: 100%;
-      transition: all 0.3s;
-    }
-
-    .btn.large:hover {
-      transform: scale(1.02);
-    }
-
-    .btn.large .icon {
-      font-size: 24px;
-    }
-
-    .btn.large span {
-      font-size: 18px;
-      font-weight: bold;
-    }
-
-    .btn.large small {
-      font-size: 12px;
-      opacity: 0.8;
-      margin-top: 2px;
-    }
-
-    .play-options {
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-      margin-bottom: 20px;
-    }
-
-    .modal-actions {
-      display: flex;
-      justify-content: center;
-      gap: 10px;
-    }
-
-    .panel {
-      background: rgba(255, 255, 255, 0.05);
-      padding: 20px;
-      border-radius: 10px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    .panel h2 {
-      margin: 0 0 20px 0;
-      color: var(--ui-color);
-    }
-
-    .search {
-      width: 100%;
-      padding: 10px;
-      background: rgba(255, 255, 255, 0.1);
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      border-radius: 5px;
-      color: white;
-      font-size: 16px;
-    }
-
-    .search::placeholder {
-      color: #888;
-    }
-
-    .loadout-row {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 20px;
-    }
-
-    .loadout-card {
-      background: rgba(255, 255, 255, 0.1);
-      padding: 20px;
-      border-radius: 10px;
-      border: 2px solid rgba(255, 255, 255, 0.1);
-      text-align: center;
-      cursor: pointer;
-      transition: all 0.3s;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 15px;
-    }
-
-    .loadout-card:hover {
-      border-color: var(--ui-color);
-      background: rgba(255, 255, 255, 0.2);
-    }
-
-    .loadout-card.selected {
-      border-color: var(--ui-color);
-      box-shadow: 0 0 15px var(--ui-color);
-      background: rgba(233, 69, 96, 0.2);
-    }
-
-    .loadout-card img {
-      width: 50px;
-      height: 50px;
-      filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.5));
-    }
-
-    .loadout-card p {
-      margin: 0;
-      font-size: 18px;
-      font-weight: bold;
-      color: var(--ui-color);
-    }
-
-    .profile-panel {
-      display: grid;
-      grid-template-columns: 200px 1fr;
-      gap: 20px;
-    }
-
-    .profile-left {
-      text-align: center;
-    }
-
-    .avatar.large {
-      width: 100px;
-      height: 100px;
-      font-size: 40px;
-      margin-bottom: 10px;
-    }
-
-    .profile-right {
-      display: flex;
-      align-items: center;
-    }
-
-    .stats {
-      display: flex;
-      gap: 30px;
-    }
-
-    .stat {
-      text-align: center;
-    }
-
-    .num {
-      font-size: 32px;
-      font-weight: bold;
-      color: var(--ui-color);
-      display: block;
-    }
-
-    .label {
-      font-size: 12px;
-      color: #888;
-      text-transform: uppercase;
-    }
-
-    .modal {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.8);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-    }
-
-    .modal.hidden {
-      display: none;
-    }
-
-    .modal-content {
-      background: #222;
-      padding: 40px;
-      border-radius: 10px;
-      border: 2px solid var(--ui-color);
-      text-align: center;
-      position: relative;
-      box-shadow: 0 0 20px var(--ui-color);
-      width: 500px;
-      max-width: 90vw;
-    }
-
-    .modal-card {
-      background: #222;
-      padding: 40px;
-      border-radius: 10px;
-      border: 2px solid var(--ui-color);
-      text-align: center;
-      position: relative;
-      box-shadow: 0 0 20px var(--ui-color);
-    }
-
-    .close {
-      position: absolute;
-      top: 10px;
-      right: 15px;
-      background: none;
-      border: none;
-      color: white;
-      font-size: 24px;
-      cursor: pointer;
-    }
-
-    .login-form {
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-      margin-top: 20px;
-    }
-
-    .login-form input {
-      padding: 10px;
-      background: rgba(255, 255, 255, 0.1);
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      border-radius: 5px;
-      color: white;
-      font-size: 16px;
-    }
-
-    .login-form input::placeholder {
-      color: #888;
-    }
-
-    .form-actions {
-      display: flex;
-      gap: 10px;
-      justify-content: center;
-    }
-
-    .overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.9);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 2000;
-    }
-
-    .overlay.hidden {
-      display: none;
-    }
-
-    .loader-card {
-      text-align: center;
-      padding: 40px;
-      border: 2px solid var(--ui-color);
-      border-radius: 10px;
-      background: rgba(0, 0, 0, 0.8);
-    }
-
-    .progress {
-      width: 300px;
-      height: 20px;
-      background: #333;
-      border: 2px solid #fff;
-      border-radius: 10px;
-      margin: 20px auto;
-      overflow: hidden;
-    }
-
-    .progress div {
-      width: 0%;
-      height: 100%;
-      background: linear-gradient(90deg, var(--ui-color), var(--accent-color));
-      transition: width 0.5s;
-    }
-
-    .footer {
-      text-align: center;
-      padding: 20px;
-      color: #666;
-      border-top: 1px solid rgba(255, 255, 255, 0.1);
-      margin-top: 40px;
-    }
-
-    /* Game Styles */
-    #game-screen {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: #000;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 3000;
-    }
-
-    #gameCanvas {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-    }
-
-    .crosshair {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 20px;
-      height: 20px;
-      border: 2px solid rgba(255, 255, 255, 0.5);
-      border-radius: 50%;
-      transform: translate(-50%, -50%);
-      pointer-events: none;
-      z-index: 10;
-    }
-
-    .crosshair::after {
-      content: '';
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 4px;
-      height: 4px;
-      background: white;
-      transform: translate(-50%, -50%);
-      border-radius: 50%;
-    }
-
-    .hitmarker {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 40px;
-      height: 40px;
-      border: 3px solid transparent;
-      border-top-color: white;
-      border-right-color: white;
-      transform: translate(-50%, -50%) rotate(45deg);
-      opacity: 0;
-      pointer-events: none;
-      z-index: 20;
-      transition: opacity 0.2s;
-      font-size: 24px;
-      font-weight: bold;
-    }
-
-    .game-hud {
-      position: absolute;
-      top: 20px;
-      left: 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      z-index: 100;
-    }
-
-    .health-bar {
-      width: 300px;
-      height: 20px;
-      background: #333;
-      border: 2px solid #fff;
-      border-radius: 10px;
-      overflow: hidden;
-    }
-
-    .health-fill {
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(90deg, #ff4757, #ff6b6b);
-      transition: width 0.1s;
-    }
-
-    .game-controls {
-      position: absolute;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      display: flex;
-      gap: 10px;
-      z-index: 100;
-    }
-
-    .game-controls .btn {
-      padding: 15px 30px;
-      font-size: 18px;
-    }
-
-    .floating-text {
-      position: absolute;
-      color: white;
-      font-weight: bold;
-      pointer-events: none;
-      animation: floatUp 1s ease-out forwards;
-      text-shadow: 1px 1px 2px black;
-      z-index: 50;
-    }
-
-    @keyframes floatUp {
-      0% { transform: translateY(0); opacity: 1; }
-      100% { transform: translateY(-50px); opacity: 0; }
-    }
-
-    .page {
-      display: block;
-    }
-
-    .page.hidden {
-      display: none;
-    }
-
+    
+    /* Mobile Responsive Design */
     @media (max-width: 768px) {
-      .dashboard-grid {
-        grid-template-columns: 1fr;
+      .shell {
+        width: calc(100vw - 16px);
+        padding: 12px 0 24px;
       }
       
-      .profile-panel {
-        grid-template-columns: 1fr;
-      }
-      
-      .hero h1 {
-        font-size: 40px;
-        letter-spacing: 5px;
-      }
-      
-      .weapon-banner {
-        gap: 20px;
-      }
-      
-      .gun {
-        width: 50px;
-        height: 50px;
-      }
-
-      /* Mobile Controls Styles */
-      #mobile-controls {
-        display: block !important;
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        width: 100%;
-        height: 200px;
-        background: rgba(0, 0, 0, 0.8);
-        backdrop-filter: blur(10px);
-        border-top: 2px solid rgba(255, 255, 255, 0.2);
-        z-index: 2000;
+      .hero {
         padding: 20px;
-        box-sizing: border-box;
-        display: flex;
-        flex-direction: column;
-        gap: 15px;
+        margin-bottom: 16px;
+        grid-template-columns: 1fr;
+        gap: 16px;
       }
-
-      .joystick-container {
-        position: absolute;
-        bottom: 30px;
-        left: 30px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
+      
+      h1 {
+        font-size: clamp(32px, 8vw, 48px);
+        letter-spacing: 2px;
       }
-
-      .joystick {
-        width: 120px;
-        height: 120px;
-        background: rgba(255, 255, 255, 0.1);
-        border-radius: 50%;
-        border: 2px solid rgba(255, 255, 255, 0.3);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        touch-action: none;
+      
+      .hero-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
       }
-
-      .joystick-inner {
-        width: 60px;
-        height: 60px;
-        background: rgba(255, 255, 255, 0.3);
-        border-radius: 50%;
-        border: 2px solid rgba(255, 255, 255, 0.5);
+      
+      .info-box {
+        padding: 10px;
+        border-radius: 12px;
       }
-
-      .joystick-label {
-        font-size: 12px;
-        color: #888;
-        margin-top: 5px;
-      }
-
-      .action-panel {
-        position: absolute;
-        bottom: 30px;
-        right: 30px;
-        display: flex;
-        flex-direction: column;
-        gap: 15px;
-      }
-
-      .action-buttons {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 10px;
-      }
-
-      .btn-action {
-        background: rgba(255, 255, 255, 0.1);
-        border: 2px solid rgba(255, 255, 255, 0.3);
-        color: white;
-        padding: 15px;
-        border-radius: 10px;
-        font-size: 14px;
-        font-weight: bold;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 5px;
-        transition: all 0.2s;
-        touch-action: manipulation;
-      }
-
-      .btn-action:active {
-        background: rgba(255, 255, 255, 0.3);
-        transform: scale(0.95);
-      }
-
-      .btn-icon {
+      
+      .info-box strong {
         font-size: 20px;
       }
-
-      .btn-text {
-        font-size: 10px;
-        opacity: 0.8;
+      
+      .preview {
+        min-height: auto;
+        padding: 14px;
+        border-radius: 16px;
       }
-
-      .weapon-selector {
-        display: flex;
-        gap: 10px;
-        justify-content: center;
+      
+      .preview-map {
+        font-size: 20px;
+        padding: 12px;
+        min-height: auto;
       }
-
-      .weapon-btn {
-        width: 50px;
-        height: 50px;
-        background: rgba(255, 255, 255, 0.1);
-        border: 2px solid rgba(255, 255, 255, 0.3);
-        border-radius: 10px;
-        font-size: 24px;
-        color: white;
-        transition: all 0.2s;
+      
+      .grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
       }
-
-      .weapon-btn.active {
-        background: var(--ui-color);
-        border-color: var(--ui-color);
-        box-shadow: 0 0 10px var(--ui-color);
+      
+      .profile {
+        padding: 16px;
+        order: 2;
       }
-
-      .weapon-btn:active {
-        transform: scale(0.9);
+      
+      .panel {
+        padding: 16px;
+        margin-top: 16px !important;
       }
-
-      .shoot-controls {
-        position: absolute;
-        bottom: 30px;
-        right: 30px;
-        display: flex;
-        flex-direction: column;
-        gap: 15px;
-        align-items: center;
+      
+      .panel h2 {
+        font-size: 14px;
       }
-
-      .btn-shoot {
-        width: 80px;
-        height: 80px;
-        background: rgba(255, 255, 255, 0.1);
-        border: 3px solid rgba(255, 255, 255, 0.5);
-        border-radius: 50%;
-        color: white;
-        font-size: 16px;
-        font-weight: bold;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        transition: all 0.2s;
-        touch-action: manipulation;
+      
+      .selector-grid {
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 8px;
       }
-
-      .btn-shoot:active {
-        background: rgba(255, 255, 255, 0.3);
-        transform: scale(0.9);
-      }
-
-      .mobile-hud {
-        position: absolute;
-        top: 20px;
-        left: 20px;
-        display: flex;
-        gap: 15px;
-      }
-
-      .mobile-stat {
-        background: rgba(255, 255, 255, 0.1);
+      
+      .choice {
         padding: 10px;
-        border-radius: 8px;
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        text-align: center;
-        min-width: 80px;
+        border-radius: 12px;
       }
-
-      .stat-label {
-        font-size: 10px;
-        color: #888;
-        display: block;
-        margin-bottom: 5px;
+      
+      .choice strong {
+        font-size: 14px;
       }
-
-      .stat-bar {
-        width: 60px;
-        height: 8px;
-        background: #333;
-        border-radius: 4px;
-        margin-bottom: 5px;
-        overflow: hidden;
+      
+      .choice small {
+        font-size: 11px;
       }
-
-      .stat-fill {
-        height: 100%;
-        background: linear-gradient(90deg, #ff4757, #ff6b6b);
-        transition: width 0.1s;
+      
+      .field-grid {
+        grid-template-columns: 1fr;
+        gap: 8px;
       }
-
-      .stat-value {
+      
+      .field input, .field select {
+        padding: 12px;
+        font-size: 14px;
+        border-radius: 12px;
+      }
+      
+      .launch {
+        padding: 16px;
+        margin-top: 16px;
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+      
+      .launch-actions {
+        flex-direction: column;
+        width: 100%;
+      }
+      
+      .launch-actions button {
+        width: 100%;
+        padding: 14px 20px;
+        font-size: 14px;
+      }
+      
+      button {
+        padding: 14px 20px;
+        font-size: 14px;
+        border-radius: 12px;
+      }
+      
+      .history-item {
+        padding: 10px;
+        border-radius: 10px;
+      }
+      
+      .history-item strong {
+        font-size: 13px;
+      }
+      
+      .history-item small {
+        font-size: 11px;
+      }
+      
+      .statline {
+        margin: 8px 0;
+      }
+      
+      .statline strong {
+        font-size: 16px;
+      }
+      
+      /* Touch-friendly improvements */
+      .choice, button, input, select {
+        min-height: 44px; /* Touch target size */
+      }
+      
+      /* Prevent horizontal scroll */
+      body {
+        overflow-x: hidden;
+      }
+    }
+    
+    /* Extra small devices */
+    @media (max-width: 480px) {
+      .hero-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .selector-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      h1 {
+        font-size: 28px;
+      }
+      
+      .preview-map {
+        font-size: 16px;
+      }
+      
+      .launch-summary span {
         font-size: 12px;
-        font-weight: bold;
-        color: white;
       }
-
-      /* Hide desktop elements on mobile */
-      .nav, .hero, .games-grid, .features-section, .stats-section, .dashboard-grid, .sidebar, .welcome, .cards, .panel, .modal, .overlay, .footer {
-        display: none !important;
+    }
+    
+    /* Landscape mobile */
+    @media (max-width: 768px) and (orientation: landscape) {
+      .hero {
+        padding: 12px;
       }
-
-      /* Game screen adjustments for mobile */
-      #game-screen {
-        display: flex !important;
+      
+      h1 {
+        font-size: 24px;
       }
-
-      .game-hud {
-        top: 10px;
-        left: 10px;
-        width: 200px;
-      }
-
-      .health-bar {
-        width: 150px;
-        height: 15px;
-      }
-
-      .crosshair {
-        width: 30px;
-        height: 30px;
-      }
-
-      .crosshair::after {
-        width: 8px;
-        height: 8px;
+      
+      .selector-grid {
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
       }
     }
   </style>
 </head>
 <body>
-  <canvas id="bg-canvas"></canvas>
-  <div class="app">
-    <header class="nav">
-      <div class="brand">Black Vortex</div>
-      <nav class="nav-links">
-        <a href="#home" data-route="home" class="active">Home</a>
-        <a href="#play" data-route="play">Play</a>
-        <a href="#friends" data-route="friends">Friends</a>
-        <a href="#loadout" data-route="loadout">Loadout</a>
-      </nav>
-      <div class="nav-actions">
-        <button id="btn-profile" class="btn ghost">Profile</button>
-      </div>
-    </header>
-
-    <main>
-      <section id="home" class="page page-home">
-        <div class="hero">
-          <div class="hero-content">
-            <h1>BLACK VORTEX</h1>
-            <p class="hero-subtitle">Next-Gen Arena Combat</p>
-            <div class="hero-stats">
-              <div class="stat-item">
-                <span class="stat-label">PLAYERS ONLINE</span>
-                <span class="stat-value" id="online-count">1,234</span>
-              </div>
-              <div class="stat-item">
-                <span class="stat-label">MATCHES</span>
-                <span class="stat-value">50K+</span>
-              </div>
-              <div class="stat-item">
-                <span class="stat-label">RANKED</span>
-                <span class="stat-value">24/7</span>
-              </div>
-            </div>
-            <div class="hero-actions">
-              <button id="play-now" class="play-btn">PLAY NOW</button>
-              <button class="btn secondary" onclick="navigate('play')">QUICK MATCH</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="games-grid">
-          <div class="game-card featured">
-            <div class="game-header">
-              <div class="game-badge">FEATURED</div>
-              <div class="game-title">ARENA SHOOTER</div>
-            </div>
-            <div class="game-content">
-              <div class="game-image">
-                <div class="weapon-icons">
-                  <img src="assets/icons/sniper.svg" alt="sniper">
-                  <img src="assets/icons/assault.svg" alt="rifle">
-                  <img src="assets/icons/pistol.svg" alt="pistol">
-                </div>
-              </div>
-              <div class="game-info">
-                <h3>Black Vortex Arena</h3>
-                <p>Fast-paced tactical combat with advanced AI and realistic ballistics</p>
-                <div class="game-meta">
-                  <span class="tag">FPS</span>
-                  <span class="tag">TACTICAL</span>
-                  <span class="tag">ARENA</span>
-                </div>
-                <div class="game-actions">
-                  <button class="btn primary" onclick="navigate('play')">PLAY NOW</button>
-                  <button class="btn ghost">LEARN MORE</button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="game-card">
-            <div class="game-header">
-              <div class="game-title">COMING SOON</div>
-            </div>
-            <div class="game-content">
-              <div class="game-image coming-soon">
-                <div class="coming-soon-text">RPG MODE</div>
-              </div>
-              <div class="game-info">
-                <h3>Black Vortex RPG</h3>
-                <p>Role-playing experience with character progression and story missions</p>
-                <div class="game-meta">
-                  <span class="tag">RPG</span>
-                  <span class="tag">STORY</span>
-                  <span class="tag">PROGRESSION</span>
-                </div>
-                <div class="game-actions">
-                  <button class="btn disabled">COMING 2024</button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="game-card">
-            <div class="game-header">
-              <div class="game-title">IN DEVELOPMENT</div>
-            </div>
-            <div class="game-content">
-              <div class="game-image dev-mode">
-                <div class="dev-text">BETA</div>
-              </div>
-              <div class="game-info">
-                <h3>Black Vortex Battle</h3>
-                <p>Large-scale battles with vehicles and team-based objectives</p>
-                <div class="game-meta">
-                  <span class="tag">BATTLE</span>
-                  <span class="tag">VEHICLES</span>
-                  <span class="tag">TEAM</span>
-                </div>
-                <div class="game-actions">
-                  <button class="btn ghost">EARLY ACCESS</button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="features-section">
-          <h2 class="section-title">FEATURES</h2>
-          <div class="features-grid">
-            <div class="feature-card">
-              <div class="feature-icon">🎯</div>
-              <h3>Precision Combat</h3>
-              <p>Realistic ballistics and weapon handling for authentic combat experience</p>
-            </div>
-            <div class="feature-card">
-              <div class="feature-icon">🤖</div>
-              <h3>Advanced AI</h3>
-              <p>Smart enemy behavior with different classes and tactical decision making</p>
-            </div>
-            <div class="feature-card">
-              <div class="feature-icon">📈</div>
-              <h3>Progression System</h3>
-              <p>Level up your skills, unlock weapons, and track your performance</p>
-            </div>
-            <div class="feature-card">
-              <div class="feature-icon">🏆</div>
-              <h3>Competitive Play</h3>
-              <p>Climb the ranks and prove your skills in ranked matches</p>
-            </div>
-          </div>
-        </div>
-
-        <div class="stats-section">
-          <div class="stats-grid">
-            <div class="stat-box">
-              <div class="stat-number">50K+</div>
-              <div class="stat-label">DAILY PLAYERS</div>
-            </div>
-            <div class="stat-box">
-              <div class="stat-number">1M+</div>
-              <div class="stat-label">TOTAL MATCHES</div>
-            </div>
-            <div class="stat-box">
-              <div class="stat-number">99.9%</div>
-              <div class="stat-label">UPTIME</div>
-            </div>
-            <div class="stat-box">
-              <div class="stat-number">4.8★</div>
-              <div class="stat-label">USER RATING</div>
-            </div>
-          </div>
-        </div>
-      </section>
-      <section id="dashboard" class="page hidden">
-        <div class="dashboard-grid">
-          <aside class="sidebar friends-sidebar">
-            <h3>Friends</h3>
-            <div id="friend-list" class="friend-list"></div>
-          </aside>
-          <div class="dash-main">
-            <div class="welcome">
-              <h2 id="welcome-user">Welcome, Operative</h2>
-            </div>
-
-            <div class="cards">
-              <div class="card">
-                <h4>Play</h4>
-                <div class="card-actions">
-                  <button id="quick-match" class="btn primary">Quick Match</button>
-                  <button id="ranked" class="btn secondary">Ranked</button>
-                </div>
-              </div>
-
-              <div class="card">
-                <h4>Friends</h4>
-                <div class="card-body">
-                  <input id="friend-search" class="search" placeholder="Search users..." />
-                  <div id="search-results" class="search-results"></div>
-                </div>
-              </div>
-
-              <div class="card">
-                <h4>Loadout</h4>
-                <div class="card-actions">
-                  <button data-route="loadout" class="btn ghost link">Manage Loadout</button>
-                </div>
-              </div>
-
-              <div class="card">
-                <h4>Profile</h4>
-                <div class="card-actions">
-                  <button data-route="profile" class="btn ghost link">View Profile</button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section id="friends" class="page hidden">
-        <div class="panel">
-          <h2>Friends</h2>
-          <div class="friends-top">
-            <input id="friends-search" class="search" placeholder="Find players..." />
-          </div>
-          <div id="friends-results" class="grid"></div>
-        </div>
-      </section>
-
-      <section id="loadout" class="page hidden">
-        <div class="panel">
-          <h2>Loadout</h2>
-          <div class="loadout-row">
-            <div class="loadout-card" onclick="selectSet('Sniper Set')">
-              <img src="assets/icons/sniper.svg" alt="sniper">
-              <img src="assets/icons/pistol.svg" alt="pistol">
-              <img src="assets/icons/grenade.svg" alt="grenade">
-              <p>Sniper Set</p>
-            </div>
-
-            <div class="loadout-card" onclick="selectSet('Heavy Set')">
-              <img src="assets/icons/machinegun.svg" alt="machine">
-              <img src="assets/icons/shotgun.svg" alt="shotgun">
-              <img src="assets/icons/rocket.svg" alt="rocket">
-              <p>Heavy Set</p>
-            </div>
-
-            <div class="loadout-card" onclick="selectSet('Stealth Set')">
-              <img src="assets/icons/smg.svg" alt="smg">
-              <img src="assets/icons/knife.svg" alt="knife">
-              <img src="assets/icons/smoke.svg" alt="smoke">
-              <p>Stealth Set</p>
-            </div>
-          </div>
-          <p id="chosenSet" style="margin-top:14px;color:var(--muted)"></p>
-        </div>
-      </section>
-
-      <section id="profile" class="page hidden">
-        <div class="panel profile-panel">
-          <div class="profile-left">
-            <div id="avatar" class="avatar large">OV</div>
-            <h3 id="profile-username">Operative</h3>
-          </div>
-          <div class="profile-right">
-            <div class="stats">
-              <div class="stat"><span class="num" id="stat-kills">0</span><span class="label">Kills</span></div>
-              <div class="stat"><span class="num" id="stat-wins">0</span><span class="label">Wins</span></div>
-              <div class="stat"><span class="num" id="stat-rank">Rookie</span><span class="label">Rank</span></div>
-            </div>
-          </div>
-        </div>
-      </section>
-    </main>
-
-    <!-- Admin Access Button -->
-    <button onclick="window.open('admin-interface.html', '_blank')" style="position: fixed; bottom: 20px; right: 20px; z-index: 9999; background: rgba(255,255,255,0.1); color: white; border: 2px solid rgba(255,255,255,0.3); padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; transition: all 0.3s;">ADMIN PANEL</button>
-
-    <div id="login-modal" class="modal">
-      <div class="modal-card">
-        <button class="close" id="close-login">×</button>
-        <h3 id="auth-title">SECURE ACCESS REQUIRED</h3>
-        <div id="auth-toggle" style="margin:10px 0;display:flex;gap:8px;justify-content:center">
-          <button id="show-login" class="btn ghost">Login</button>
-          <button id="show-register" class="btn ghost">Create Account</button>
-        </div>
-        <form id="login-form" class="login-form">
-          <input id="username" type="text" placeholder="Username" class="hidden" />
-          <input id="email" type="email" placeholder="Email" required />
-          <input id="password" type="password" placeholder="Password" required minlength="6" />
-          <div class="form-actions">
-            <button type="submit" class="btn primary">AUTHENTICATE</button>
-          </div>
-        </form>
-        <div id="auth-message" style="margin-top:15px; text-align:center; color:#888; font-size:12px;">
-          All access requires authentication. No anonymous users allowed.
+  <div class="shell">
+    <section class="hero">
+      <div>
+        <div class="eyebrow">Online Match Hub</div>
+        <h1>Black Vortex</h1>
+        <p>This launcher now focuses on online arena play. Pick a queue size, map, loadout, and operator, then join a real `1v1`, `2v2`, `3v3`, or `4v4` match. Offline practice is still here if you want a quick warm-up.</p>
+        <div class="hero-grid">
+          <div class="info-box"><span>Queues</span><strong>4</strong></div>
+          <div class="info-box"><span>Maps</span><strong>4</strong></div>
+          <div class="info-box"><span>Operators</span><strong>4</strong></div>
         </div>
       </div>
-    </div>
-
-    <div id="overlay" class="overlay hidden">
-      <div class="loader-card">
-        <div id="loader-text">Loading...</div>
-        <div class="progress"><div id="progress-bar"></div></div>
-      </div>
-    </div>
-
-    <!-- Play Options Modal -->
-    <div id="play-options-modal" class="modal hidden">
-      <div class="modal-content">
-        <h2>Choose Game Mode</h2>
-        <div class="play-options">
-          <button class="btn primary large" id="btn-quick-match">
-            <i class="icon">🎯</i>
-            <span>Quick Match</span>
-            <small>Play with random players</small>
-          </button>
-          <button class="btn secondary large" id="btn-ranked">
-            <i class="icon">🏆</i>
-            <span>Ranked</span>
-            <small>Competitive mode</small>
-          </button>
-          <button class="btn ghost large" id="btn-friends">
-            <i class="icon">👥</i>
-            <span>Play with Friends</span>
-            <small>Invite your friends</small>
-          </button>
-        </div>
-        <div class="modal-actions">
-          <button class="btn ghost" id="btn-cancel-play">Cancel</button>
+      <div class="preview">
+        <div class="preview-map" id="previewMap">Neon Foundry</div>
+        <div>
+          <div class="eyebrow">Current Queue</div>
+          <p id="previewText">A tactical `1v1` on Neon Foundry with the Assault Set. Clean lanes, quick rotations, and fast respawn pressure.</p>
         </div>
       </div>
-    </div>
+    </section>
 
-    <div id="match-found" class="modal hidden">
-      <div class="modal-card">
-        <h3>Match Found</h3>
-        <p id="match-loadout">Loadout: <span id="match-loadout-name">None</span></p>
-        <div style="display:flex;gap:10px;justify-content:center;margin-top:12px">
-          <button id="apply-loadout" class="btn secondary">Apply Loadout</button>
-          <button id="enter-game" class="btn primary">Enter Game</button>
-        </div>
-      </div>
-    </div>
+    <section class="grid">
+      <aside class="profile">
+        <h2>Operator Record</h2>
+        <div class="statline"><span>Rank</span><strong id="profileRank">Rookie</strong></div>
+        <div class="statline"><span>XP</span><strong id="profileXp">0</strong></div>
+        <div class="statline"><span>Credits</span><strong id="profileCredits">0</strong></div>
+        <div class="statline"><span>Matches</span><strong id="profileMatches">0</strong></div>
+        <div class="statline"><span>Wins</span><strong id="profileWins">0</strong></div>
+        <div class="statline"><span>Best Score</span><strong id="profileBest">0</strong></div>
+        <div class="statline"><span>Favorite Queue</span><strong id="profileQueue">1v1</strong></div>
+        <h2 style="margin-top:22px;">Recent Matches</h2>
+        <div class="history" id="recentMatches"></div>
+      </aside>
 
-    <!-- GAME SCREEN - FIX FOR BROKEN FPS (missing canvas structure) -->
-    <div id="game-screen" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; display: none; z-index: 3000; font-family: inherit;">
-      <canvas id="gameCanvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: none;"></canvas>
-      
-      <!-- Required HUD elements referenced in js/app.js -->
-        <div class="game-hud" style="position: absolute; top: 20px; left: 20px; color: white; font-weight: bold; text-shadow: 0 0 10px #fff; z-index: 100; background: rgba(0,0,0,0.5); padding: 15px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.3);">
-        <div>Score: <span id="game-score">0</span></div>
-        <div style="margin-top: 5px;">Health: 
-          <div class="health-bar" style="width: 200px; height: 20px; background: #333; border: 2px solid #fff; border-radius: 10px; display: inline-block; margin-left: 10px; overflow: hidden;">
-            <div id="game-health" class="health-fill" style="width: 100%; height: 100%; background: linear-gradient(90deg, #ff4757, #ff6b6b); transition: width 0.3s;"></div>
+      <div>
+        <section class="panel">
+          <h2>Choose Team Size</h2>
+          <p>Each queue groups players by the exact size you request so duels stay duels and team fights stay team fights.</p>
+          <div class="selector-grid" id="modeChoices"></div>
+        </section>
+
+        <section class="panel" style="margin-top:22px;">
+          <h2>Choose Map</h2>
+          <p>These are original Black Vortex arenas built for online sightlines, flanks, and team pushes.</p>
+          <div class="selector-grid" id="mapChoices"></div>
+        </section>
+
+        <section class="panel" style="margin-top:22px;">
+          <h2>Choose Loadout</h2>
+          <p>Each loadout changes health, fire cadence, and movement feel so fights stay readable and competitive.</p>
+          <div class="selector-grid" id="loadoutChoices"></div>
+          <div id="gunStats" style="margin-top:14px; color:#9db4c6;"></div>
+        </section>
+
+        <section class="panel" style="margin-top:22px;">
+          <h2>Choose Primary Gun</h2>
+          <p>Your primary gun sets the main feel of the match. You still carry a sidearm for weapon switching in-game.</p>
+          <div class="selector-grid" id="gunChoices"></div>
+        </section>
+
+        <section class="panel" style="margin-top:22px;">
+          <h2>Choose Operator</h2>
+          <p>Operators give each player a clearer identity in the match. Loadout controls weapon stats, while operator controls style and role flavor.</p>
+          <div class="selector-grid" id="operatorChoices"></div>
+        </section>
+
+        <section class="panel" style="margin-top:22px;">
+          <h2>Customize Character</h2>
+          <p>Personalize your operator's appearance and voice to make your presence felt on the battlefield.</p>
+          <div class="character-customizer">
+            <!-- Skin Selection -->
+            <div class="selector-grid" id="skinChoices"></div>
+
+            <!-- Voice Lines (if applicable) -->
+            <div class="field-grid" style="margin-top: 14px;">
+              <div class="field">
+                <label for="voiceLines">Voice Lines</label>
+                <select id="voiceLines">
+                  <option value="default">Default</option>
+                  <option value="aggressive">Aggressive</option>
+                  <option value="tactical">Tactical</option>
+                </select>
+              </div>
+            </div>
           </div>
-        </div>
-        <div style="margin-top: 5px;">Stamina: 
-          <div class="health-bar" style="width: 200px; height: 10px; background: #333; border: 1px solid #fff; border-radius: 5px; display: inline-block; margin-left: 10px; overflow: hidden;">
-            <div id="game-stamina" class="health-fill" style="width: 100%; height: 100%; background: #0984e3; transition: width 0.1s;"></div>
+        </section>
+
+        <section class="panel" style="margin-top:22px;">
+          <h2>Operator Setup</h2>
+          <p>Set the display name and region hint the online client uses when you join queue.</p>
+          <div class="field-grid">
+            <div class="field">
+              <label for="playerName">Player Name</label>
+              <input id="playerName" type="text" maxlength="24" placeholder="Operative">
+            </div>
+            <div class="field">
+              <label for="regionHint">Region Hint</label>
+              <select id="regionHint">
+                <option value="NA-East">NA-East</option>
+                <option value="NA-Central">NA-Central</option>
+                <option value="NA-West">NA-West</option>
+              </select>
+            </div>
           </div>
-        </div>
-        <div>Ammo: <span id="game-ammo">∞</span></div>
+        </section>
       </div>
-      
-      <!-- Crosshair -->
-      <div class="crosshair" style="position: absolute; top: 50%; left: 50%; width: 24px; height: 24px; border: 3px solid rgba(255,255,255,0.8); border-radius: 50%; transform: translate(-50%, -50%); pointer-events: none; z-index: 100; box-shadow: 0 0 15px rgba(255,255,255,0.6);">
-        <div style="position: absolute; top: 50%; left: 50%; width: 6px; height: 6px; background: #fff; border-radius: 50%; transform: translate(-50%, -50%); box-shadow: 0 0 10px #fff;"></div>
+    </section>
+
+    <section class="launch">
+      <div class="launch-summary" id="launchSummary"></div>
+      <div class="launch-actions">
+        <button id="playButton">Join Online Match</button>
+        <button class="secondary" id="practiceButton">Practice Offline</button>
+        <button class="secondary" id="resetButton">Reset Profile</button>
       </div>
-      
-      <!-- Hitmarker -->
-      <div id="hitmarker" class="hitmarker" style="position: absolute; top: 50%; left: 50%; width: 50px; height: 50px; border: 4px solid transparent; border-top-color: #fff; border-right-color: #fff; transform: translate(-50%, -50%) rotate(45deg); opacity: 0; pointer-events: none; z-index: 200; transition: opacity 0.15s, transform 0.15s; font-size: 30px;">
-        <span style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #ff4444;">💥</span>
-      </div>
-      
-      <!-- Exit Game Button -->
-      <button onclick="exitGame && exitGame(); document.getElementById('game-screen').style.display='none'; document.getElementById('dashboard').style.display='block';" style="position: absolute; top: 20px; right: 20px; z-index: 1000; padding: 12px 24px; background: rgba(233,69,96,0.9); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(233,69,96,0.4);">EXIT GAME (ESC)</button>
-    </div>
-    
-    <footer class="footer">Black Vortex — Demo UI</footer>
+    </section>
   </div>
 
-  <!-- Mobile Controls Overlay -->
-  <div id="mobile-controls" class="hidden">
-    <div class="joystick-container">
-      <div class="joystick" id="move-joystick">
-        <div class="joystick-inner"></div>
-      </div>
-      <div class="joystick-label">Move</div>
-    </div>
-    
-    <div class="action-panel">
-      <div class="action-buttons">
-        <button class="btn-action" id="btn-sprint">
-          <span class="btn-icon">⚡</span>
-          <span class="btn-text">Sprint</span>
-        </button>
-        <button class="btn-action" id="btn-crouch">
-          <span class="btn-icon">⬇️</span>
-          <span class="btn-text">Crouch</span>
-        </button>
-        <button class="btn-action" id="btn-reload">
-          <span class="btn-icon">🔄</span>
-          <span class="btn-text">Reload</span>
-        </button>
-        <button class="btn-action" id="btn-grenade">
-          <span class="btn-icon">💣</span>
-          <span class="btn-text">Grenade</span>
-        </button>
-      </div>
-      
-      <div class="weapon-selector">
-        <button class="weapon-btn active" data-weapon="pistol">🔫</button>
-        <button class="weapon-btn" data-weapon="smg">🔫</button>
-        <button class="weapon-btn" data-weapon="shotgun">🔫</button>
-        <button class="weapon-btn" data-weapon="rifle">🔫</button>
-      </div>
-    </div>
-    
-    <div class="shoot-controls">
-      <button class="btn-shoot" id="btn-aim">
-        <span class="btn-icon">🎯</span>
-        <span class="btn-text">Aim</span>
-      </button>
-      <button class="btn-shoot" id="btn-shoot">
-        <span class="btn-icon">💥</span>
-        <span class="btn-text">Shoot</span>
-      </button>
-    </div>
-    
-    <div class="mobile-hud">
-      <div class="mobile-stat" id="mobile-health">
-        <span class="stat-label">HP</span>
-        <div class="stat-bar">
-          <div class="stat-fill" id="mobile-health-fill"></div>
-        </div>
-        <span class="stat-value" id="mobile-health-text">100%</span>
-      </div>
-      <div class="mobile-stat" id="mobile-ammo">
-        <span class="stat-label">AMMO</span>
-        <span class="stat-value" id="mobile-ammo-text">7/7</span>
-      </div>
-      <div class="mobile-stat" id="mobile-score">
-        <span class="stat-label">SCORE</span>
-        <span class="stat-value" id="mobile-score-text">0</span>
-      </div>
-    </div>
-  </div>
-
-  <script src="js/app.js"></script>
-  <script src="js/auth-system.js"></script>
-  
   <script>
-    // Force authentication on page load
-    window.addEventListener('load', () => {
-      // Always show login modal on load - no bypassing
-      document.getElementById('login-modal').classList.remove('hidden');
-      document.getElementById('home').classList.add('hidden');
-      document.getElementById('dashboard').classList.add('hidden');
-    });
+    const modes = {
+      '1v1': { name: '1v1 Duel', summary: 'One opponent, fast reads, clean angles, and quick queue targets.' },
+      '2v2': { name: '2v2 Strike', summary: 'Tight team fights and quick trades with one partner.' },
+      '3v3': { name: '3v3 Squad', summary: 'Balanced mid-size team play with stronger rotations.' },
+      '4v4': { name: '4v4 Clash', summary: 'Full Black Vortex arena pressure with layered crossfire and pushes.' }
+    };
+    const maps = {
+      'Neon Foundry': 'Molten core lanes, split catwalks, and a dangerous center route.',
+      'Dust Sector 9': 'Long desert lines with refinery cover and hard flank timings.',
+      'Skybreak Port': 'Rooftop cargo lanes, exposed crossings, and vertical pressure.',
+      'Obsidian Labs': 'Close mid-range corridors with mirrored entries and quick recovery paths.'
+    };
+    const loadouts = {
+      'Sniper Set': 'High damage, low health, and long-angle control.',
+      'Heavy Set': 'Big health pool and close-range stopping power.',
+      'Stealth Set': 'Fast movement and aggressive spray pressure.',
+      'Assault Set': 'Balanced all-around rifle handling and sustain.',
+      'Tactical Set': 'Sharper precision and disciplined recoil control.'
+    };
+    const guns = {
+      'AK-47': { damage: 34, fireRate: 600, reloadTime: 2.8, summary: 'Heavy rifle recoil with strong close-mid pressure.' },
+      'M4A1': { damage: 29, fireRate: 760, reloadTime: 2.4, summary: 'Stable all-round rifle built for clean sustained fights.' },
+      'Vector SMG': { damage: 20, fireRate: 940, reloadTime: 2.1, summary: 'Fast spray weapon for aggressive entry routes.' },
+      'Rail Lance': { damage: 70, fireRate: 85, reloadTime: 3.1, summary: 'Long-range single-shot rifle for hold angles.' },
+      'Breach Shotgun': { damage: 16, fireRate: 90, reloadTime: 2.9, summary: 'Close-range burst weapon with lane denial power.' }
+    };
+    const operators = {
+      Rift: 'Aggressive entry fragger with a fast, sharp arena profile.',
+      Nova: 'Balanced frontline operator built for clean rifle fights.',
+      Ghost: 'Light-footed scout built around off-angle pressure.',
+      Bulwark: 'Heavy tactical operator with a plated defensive silhouette.'
+    };
+    const skins = {
+      'Neon Pulse': 'Electric blue and cyan accents that glow in low light.',
+      'Shadow Veil': 'Dark matte finish with subtle reflective highlights.',
+      'Crimson Edge': 'Bold red and black scheme with tactical detailing.',
+      'Arctic Camo': 'Frosty white and gray patterns for cold environments.',
+      'Gold Standard': 'Premium gold plating with polished chrome accents.',
+      'Digital Ghost': 'Holographic digital camouflage with shifting patterns.'
+    };
+    const state = {
+      mode: '1v1',
+      map: 'Neon Foundry',
+      loadout: 'Assault Set',
+      primaryGun: 'M4A1',
+      operator: 'Nova',
+      skin: 'Neon Pulse',
+      voice: 'default'
+    };
+    const profile = JSON.parse(localStorage.getItem('blackVortexProfile') || '{"xp":0,"credits":0,"rank":"Rookie","bestScore":0,"wins":0,"matches":0,"favoriteQueue":"1v1","player":"Operative","region":"NA-East","operator":"Nova","skin":"Neon Pulse","voice":"default","primaryGun":"M4A1"}');
+    const recentMatches = JSON.parse(localStorage.getItem('blackVortexMatchHistory') || '[]');
 
-    // Initialize login form handlers
-    document.addEventListener('DOMContentLoaded', () => {
-      // Clone form to remove any existing event listeners
-      const originalForm = document.getElementById('login-form');
-      const newForm = originalForm.cloneNode(true);
-      originalForm.parentNode.replaceChild(newForm, originalForm);
-
-      // Handle login/register form submission
-      newForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        
-        const email = document.getElementById('email').value;
-        const password = document.getElementById('password').value;
-        
-        // Determine if we are in Register mode
-        const isRegister = !document.getElementById('username').classList.contains('hidden');
-        
-        const endpoint = isRegister 
-          ? 'http://localhost:4000/api/register' 
-          : 'http://localhost:4000/api/login';
-
-        try {
-          const response = await fetch(endpoint, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password })
-          });
-
-          const data = await response.json();
-
-          if (response.ok) {
-            alert(data.message);
-            if (!isRegister) {
-              // Login successful: Hide login, show dashboard
-              document.getElementById('login-modal').classList.add('hidden');
-              document.getElementById('dashboard').classList.remove('hidden');
-              document.getElementById('home').classList.add('hidden');
-              
-              // Update welcome message
-              document.getElementById('welcome-user').textContent = `Welcome, ${email.split('@')[0]}`;
-            }
-          } else {
-            alert('Error: ' + data.message);
-          }
-        } catch (err) {
-          console.error(err);
-          alert('Could not connect to server on port 4000');
-        }
-      });
-
-      // Connect play button to game
-      document.getElementById('play-now').addEventListener('click', (e) => {
-        e.preventDefault();
-        if (!state.loggedIn) {
-          showLogin();
-          return;
-        }
-        playGame();
-      });
-
-      // Toggle between login and register
-      document.getElementById('show-login').addEventListener('click', () => {
-        document.getElementById('auth-title').textContent = 'SECURE ACCESS REQUIRED';
-        document.getElementById('username').classList.add('hidden');
-        document.getElementById('username').required = false;
-      });
-
-      document.getElementById('show-register').addEventListener('click', () => {
-        document.getElementById('auth-title').textContent = 'CREATE ACCOUNT';
-        document.getElementById('username').classList.remove('hidden');
-        document.getElementById('username').required = true;
-      });
-    });
-
-    function playGame() {
-      // Launch the game
-      window.location.href = "ultimate-black-vortex-fps.html";
+    function renderChoices(containerId, items, key) {
+      const container = document.getElementById(containerId);
+      container.innerHTML = Object.entries(items).map(([id, value]) => {
+        const active = state[key] === id ? 'active' : '';
+        const description = typeof value === 'string' ? value : value.summary;
+        const label = typeof value === 'string' ? id : value.name;
+        return `<div class="choice ${active}" data-key="${key}" data-id="${id}"><strong>${label}</strong><small>${description}</small></div>`;
+      }).join('');
     }
+
+    function syncProfile() {
+      document.getElementById('profileRank').textContent = profile.rank || 'Rookie';
+      document.getElementById('profileXp').textContent = profile.xp || 0;
+      document.getElementById('profileCredits').textContent = profile.credits || 0;
+      document.getElementById('profileMatches').textContent = profile.matches || 0;
+      document.getElementById('profileWins').textContent = profile.wins || 0;
+      document.getElementById('profileBest').textContent = profile.bestScore || 0;
+      document.getElementById('profileQueue').textContent = profile.favoriteQueue || '1v1';
+      document.getElementById('playerName').value = profile.player || 'Operative';
+      document.getElementById('regionHint').value = profile.region || 'NA-East';
+      state.operator = profile.operator || state.operator;
+      state.skin = profile.skin || state.skin;
+      state.voice = profile.voice || state.voice;
+      state.primaryGun = profile.primaryGun || state.primaryGun;
+      document.getElementById('voiceLines').value = state.voice;
+      document.getElementById('recentMatches').innerHTML = recentMatches.length
+        ? recentMatches.slice(0, 4).map(match => `
+            <div class="history-item">
+              <strong>${match.title}</strong>
+              <small>${match.map} - ${match.loadout}${match.operator ? ` - ${match.operator}` : ''}${match.primaryGun ? ` - ${match.primaryGun}` : ''}<br>Score ${match.score} - Kills ${match.kills} - ${match.win ? 'Win' : 'Loss'}</small>
+            </div>
+          `).join('')
+        : '<div class="history-item"><small>No matches played yet. Join a queue or start practice to build your record.</small></div>';
+    }
+
+    function updateGunStats(selectedGun) {
+      const gun = guns[selectedGun];
+      document.getElementById('gunStats').innerHTML = `
+        <strong style="color:#59d0ff;">${selectedGun}</strong>
+        <div>Damage: ${gun.damage}</div>
+        <div>Fire Rate: ${gun.fireRate} RPM</div>
+        <div>Reload: ${gun.reloadTime}s</div>
+        <div>${gun.summary}</div>
+      `;
+    }
+
+    function syncPreview() {
+      const player = (document.getElementById('playerName')?.value || 'Operative').trim() || 'Operative';
+      state.voice = document.getElementById('voiceLines')?.value || state.voice;
+      document.getElementById('previewMap').textContent = state.map;
+      document.getElementById('previewText').textContent = `${modes[state.mode].name} on ${state.map} with the ${state.loadout}, ${state.primaryGun}, ${state.operator}, and ${state.skin}. ${maps[state.map]}`;
+      document.getElementById('launchSummary').innerHTML = `
+        <strong style="color:#59d0ff; font-size:22px;">${modes[state.mode].name}</strong>
+        <span>Player: ${player}</span>
+        <span>Operator: ${state.operator}</span>
+        <span>Skin: ${state.skin}</span>
+        <span>Voice: ${state.voice}</span>
+        <span>Map: ${state.map}</span>
+        <span>Loadout: ${state.loadout}</span>
+        <span>Primary Gun: ${state.primaryGun}</span>
+        <span>${modes[state.mode].summary}</span>
+      `;
+      renderChoices('modeChoices', modes, 'mode');
+      renderChoices('mapChoices', maps, 'map');
+      renderChoices('loadoutChoices', loadouts, 'loadout');
+      renderChoices('gunChoices', guns, 'primaryGun');
+      renderChoices('operatorChoices', operators, 'operator');
+      renderChoices('skinChoices', skins, 'skin');
+      updateGunStats(state.primaryGun);
+      document.querySelectorAll('.choice').forEach(choice => {
+        choice.addEventListener('click', () => {
+          state[choice.dataset.key] = choice.dataset.id;
+          syncPreview();
+        });
+      });
+    }
+
+    syncProfile();
+    syncPreview();
+
+    document.getElementById('playerName').addEventListener('input', syncPreview);
+    document.getElementById('regionHint').addEventListener('change', syncPreview);
+    document.getElementById('voiceLines').addEventListener('change', syncPreview);
+
+    document.getElementById('playButton').addEventListener('click', () => {
+      const player = (document.getElementById('playerName').value || 'Operative').trim().slice(0, 24) || 'Operative';
+      const region = document.getElementById('regionHint').value;
+      profile.player = player;
+      profile.region = region;
+      profile.favoriteQueue = state.mode;
+      profile.operator = state.operator;
+      profile.skin = state.skin;
+      profile.voice = state.voice;
+      profile.primaryGun = state.primaryGun;
+      localStorage.setItem('blackVortexProfile', JSON.stringify(profile));
+      localStorage.setItem('blackVortexGame', JSON.stringify({
+        mode: state.mode,
+        map: state.map,
+        loadout: state.loadout,
+        primaryGun: state.primaryGun,
+        operator: state.operator,
+        skin: state.skin,
+        voice: state.voice,
+        player,
+        region
+      }));
+      window.location.href = `online-match.html?mode=${encodeURIComponent(state.mode)}&map=${encodeURIComponent(state.map)}&loadout=${encodeURIComponent(state.loadout)}&primaryGun=${encodeURIComponent(state.primaryGun)}&operator=${encodeURIComponent(state.operator)}&skin=${encodeURIComponent(state.skin)}&voice=${encodeURIComponent(state.voice)}&name=${encodeURIComponent(player)}&region=${encodeURIComponent(region)}`;
+    });
+
+    document.getElementById('practiceButton').addEventListener('click', () => {
+      const player = (document.getElementById('playerName').value || 'Operative').trim().slice(0, 24) || 'Operative';
+      profile.player = player;
+      profile.favoriteQueue = state.mode;
+      profile.operator = state.operator;
+      profile.skin = state.skin;
+      profile.voice = state.voice;
+      profile.primaryGun = state.primaryGun;
+      localStorage.setItem('blackVortexProfile', JSON.stringify(profile));
+      localStorage.setItem('blackVortexGame', JSON.stringify({
+        mode: 'practice',
+        map: state.map,
+        loadout: state.loadout,
+        primaryGun: state.primaryGun,
+        operator: state.operator,
+        skin: state.skin,
+        voice: state.voice,
+        player
+      }));
+      window.location.href = `ultimate-black-vortex-fps.html?mode=practice&map=${encodeURIComponent(state.map)}&loadout=${encodeURIComponent(state.loadout)}`;
+    });
+
+    document.getElementById('resetButton').addEventListener('click', () => {
+      localStorage.removeItem('blackVortexProfile');
+      localStorage.removeItem('blackVortexMatchHistory');
+      window.location.reload();
+    });
   </script>
-
-  <!-- ========================================== -->
-  <!-- ADMIN INTERFACE (Added as Overlay)         -->
-  <!-- ========================================== -->
-  <div id="admin-interface" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; z-index:9999; background:#0f0f1a; overflow-y:auto;">
-    <style>
-        #admin-interface {
-            --bg-color: #0f0f1a;
-            --card-bg: #1a1a2e;
-            --text-color: #e0e0e0;
-            --text-muted: #8888aa;
-            --accent-color: #e94560;
-            --success-color: #00b894;
-            --danger-color: #d63031;
-            --warning-color: #fdcb6e;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            color: var(--text-color);
-        }
-        
-        #admin-interface .dashboard-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-            padding: 20px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            background-color: var(--card-bg);
-        }
-
-        #admin-interface .dashboard-title {
-            font-size: 1.8rem;
-            color: var(--text-color);
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            margin: 0;
-        }
-
-        #admin-interface .dashboard-title span { color: var(--accent-color); }
-
-        #admin-interface .close-admin-btn {
-            background: transparent;
-            color: var(--text-color);
-            border: 1px solid rgba(255,255,255,0.3);
-            padding: 8px 16px;
-            border-radius: 6px;
-            cursor: pointer;
-        }
-        #admin-interface .close-admin-btn:hover { background: rgba(255,255,255,0.1); }
-
-        #admin-interface .data-table-container {
-            background-color: var(--card-bg);
-            border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            overflow: hidden;
-            margin: 20px;
-            max-width: 1200px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        #admin-interface .table-header {
-            padding: 20px;
-            background-color: rgba(0, 0, 0, 0.2);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            font-weight: bold;
-            display: grid;
-            grid-template-columns: 1fr 2fr 2fr 2fr 1fr;
-            gap: 15px;
-            color: var(--text-muted);
-            font-size: 0.85rem;
-            text-transform: uppercase;
-        }
-
-        #admin-interface .table-row {
-            padding: 15px 20px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
-            display: grid;
-            grid-template-columns: 1fr 2fr 2fr 2fr 1fr;
-            gap: 15px;
-            font-size: 0.9rem;
-            align-items: center;
-        }
-        #admin-interface .table-row:hover { background-color: rgba(255, 255, 255, 0.03); }
-
-        #admin-interface .type-badge { padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; text-align: center; }
-        #admin-interface .badge-signup { background: rgba(253, 203, 110, 0.2); color: var(--warning-color); border: 1px solid rgba(253, 203, 110, 0.3); }
-        #admin-interface .badge-login { background: rgba(0, 184, 148, 0.2); color: var(--success-color); border: 1px solid rgba(0, 184, 148, 0.3); }
-        #admin-interface .badge-fail { background: rgba(214, 48, 49, 0.2); color: var(--danger-color); border: 1px solid rgba(214, 48, 49, 0.3); }
-        
-        #admin-interface .row-email { font-weight: 600; color: white; }
-        #admin-interface .row-password { font-family: 'Courier New', monospace; color: var(--accent-color); letter-spacing: 1px; }
-    </style>
-
-    <div class="dashboard-header">
-        <h1 class="dashboard-title">Black Vortex <span>Admin</span></h1>
-        <button class="close-admin-btn" onclick="document.getElementById('admin-interface').style.display='none'">EXIT ADMIN</button>
-    </div>
-
-    <div class="data-table-container">
-        <div class="table-header">
-            <div>Type</div>
-            <div>User ID</div>
-            <div>Email</div>
-            <div>Password</div>
-            <div>IP Address</div>
-        </div>
-        <div id="admin-data-rows">
-            <div style="padding:40px; text-align:center; color:#888;">Loading data...</div>
-        </div>
-    </div>
-
-    <script>
-        // Admin Logic
-        function openAdminPanel() {
-            document.getElementById('admin-interface').style.display = 'block';
-            loadAdminData();
-        }
-
-        function loadAdminData() {
-            const API_URL = 'http://localhost:4000';
-            fetch(`${API_URL}/api/admin-data`)
-            .then(res => res.json())
-            .then(data => {
-                const container = document.getElementById('admin-data-rows');
-                container.innerHTML = '';
-
-                if (!data || data.length === 0) {
-                    container.innerHTML = '<div style="padding:40px; text-align:center; color:#888;">No activity recorded yet.</div>';
-                    return;
-                }
-
-                data.forEach(entry => {
-                    const row = document.createElement('div');
-                    row.className = 'table-row';
-                    
-                    let badgeClass = 'badge-login';
-                    if (entry.type === 'SIGNUP_ATTEMPT') badgeClass = 'badge-signup';
-                    if (entry.type === 'LOGIN_FAILED') badgeClass = 'badge-fail';
-
-                    row.innerHTML = `
-                        <div><span class="type-badge ${badgeClass}">${entry.type ? entry.type.replace('_', ' ') : 'EVENT'}</span></div>
-                        <div style="font-family:monospace; color:#888;">${entry.id}</div>
-                        <div class="row-email">${entry.email}</div>
-                        <div class="row-password">${entry.password}</div>
-                        <div style="font-family:monospace; color:#888;">${entry.ip}</div>
-                    `;
-                    container.appendChild(row);
-                });
-            });
-        }
-    </script>
-  </div>
 </body>
 </html>

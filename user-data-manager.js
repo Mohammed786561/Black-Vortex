@@ -1,24 +1,243 @@
-// USER DATA MANAGEMENT SYSTEM
-// Add this script to your Black Vortex FPS game
+// USER DATA MANAGEMENT SYSTEM - Backend Integration
+// Connects to Black Vortex backend API
 
-// Save user data to localStorage (simulates saving to userData folder)
+const API_BASE_URL = 'http://localhost:4000';
+
+// Get auth token from storage
+function getAuthToken() {
+  return localStorage.getItem('authToken');
+}
+
+// Set auth token
+function setAuthToken(token) {
+  localStorage.setItem('authToken', token);
+}
+
+// Clear auth token
+function clearAuthToken() {
+  localStorage.removeItem('authToken');
+}
+
+// API request helper
+async function apiRequest(endpoint, options = {}) {
+  const token = getAuthToken();
+  const headers = {
+    'Content-Type': 'application/json',
+    ...(token && { 'Authorization': `Bearer ${token}` }),
+    ...options.headers
+  };
+
+  try {
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      ...options,
+      headers
+    });
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data.message || 'API request failed');
+    }
+    
+    return data;
+  } catch (error) {
+    console.error('API Error:', error);
+    throw error;
+  }
+}
+
+// Login with backend API
+async function loginWithBackend(email, password) {
+  try {
+    const data = await apiRequest('/api/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ email, password })
+    });
+    
+    if (data.success) {
+      setAuthToken(data.token);
+      localStorage.setItem('currentUser', JSON.stringify(data.user));
+      trackLoginAttempt(email, true);
+      return { success: true, user: data.user, token: data.token };
+    }
+    
+    return { success: false, message: data.message };
+  } catch (error) {
+    trackLoginAttempt(email, false);
+    return { success: false, message: error.message };
+  }
+}
+
+// Register with backend API
+async function registerWithBackend(email, password, name) {
+  try {
+    const data = await apiRequest('/api/auth/register', {
+      method: 'POST',
+      body: JSON.stringify({ email, password, name })
+    });
+    
+    if (data.success) {
+      setAuthToken(data.token);
+      localStorage.setItem('currentUser', JSON.stringify(data.user));
+      return { success: true, user: data.user, token: data.token };
+    }
+    
+    return { success: false, message: data.message };
+  } catch (error) {
+    return { success: false, message: error.message };
+  }
+}
+
+// Google OAuth login
+async function googleOAuthLogin(email) {
+  try {
+    const data = await apiRequest('/api/auth/google', {
+      method: 'POST',
+      body: JSON.stringify({ email })
+    });
+    
+    if (data.success) {
+      setAuthToken(data.token);
+      localStorage.setItem('currentUser', JSON.stringify(data.user));
+      return { success: true, user: data.user, token: data.token };
+    }
+    
+    return { success: false, message: data.message };
+  } catch (error) {
+    return { success: false, message: error.message };
+  }
+}
+
+// Logout
+async function logoutFromBackend() {
+  try {
+    await apiRequest('/api/auth/logout', { method: 'POST' });
+  } catch (error) {
+    console.error('Logout error:', error);
+  } finally {
+    clearAuthToken();
+    localStorage.removeItem('currentUser');
+  }
+}
+
+// Get user profile from backend
+async function getUserProfile() {
+  try {
+    const data = await apiRequest('/api/auth/profile');
+    return { success: true, profile: data };
+  } catch (error) {
+    return { success: false, message: error.message };
+  }
+}
+
+// Update progress after match
+async function updateProgress(matchData) {
+  try {
+    const data = await apiRequest('/api/user/progress', {
+      method: 'POST',
+      body: JSON.stringify(matchData)
+    });
+    
+    if (data.success) {
+      localStorage.setItem('currentUser', JSON.stringify(data.user));
+      return { success: true, user: data.user, earned: data.earned, leveledUp: data.leveledUp };
+    }
+    
+    return { success: false, message: data.message };
+  } catch (error) {
+    return { success: false, message: error.message };
+  }
+}
+
+// Get match history
+async function getMatchHistory(limit = 10) {
+  try {
+    const data = await apiRequest(`/api/user/matches?limit=${limit}`);
+    return { success: true, matches: data.matches };
+  } catch (error) {
+    return { success: false, message: error.message };
+  }
+}
+
+// Get leaderboard
+async function getLeaderboard(limit = 10) {
+  try {
+    const data = await apiRequest(`/api/leaderboard?limit=${limit}`);
+    return { success: true, leaderboard: data.leaderboard };
+  } catch (error) {
+    return { success: false, message: error.message };
+  }
+}
+
+// Get friends list
+async function getFriends() {
+  try {
+    const data = await apiRequest('/api/friends');
+    return { success: true, friends: data.friends };
+  } catch (error) {
+    return { success: false, message: error.message };
+  }
+}
+
+// Add friend
+async function addFriend(targetEmail) {
+  try {
+    const data = await apiRequest('/api/friends/add', {
+      method: 'POST',
+      body: JSON.stringify({ targetEmail })
+    });
+    return { success: true, message: data.message };
+  } catch (error) {
+    return { success: false, message: error.message };
+  }
+}
+
+// Remove friend
+async function removeFriend(friendId) {
+  try {
+    const data = await apiRequest(`/api/friends/${friendId}`, {
+      method: 'DELETE'
+    });
+    return { success: true, message: data.message };
+  } catch (error) {
+    return { success: false, message: error.message };
+  }
+}
+
+// Get online users
+async function getOnlineUsers() {
+  try {
+    const data = await apiRequest('/api/users/online');
+    return { success: true, users: data.users };
+  } catch (error) {
+    return { success: false, message: error.message };
+  }
+}
+
+// Check if user is logged in
+function isLoggedIn() {
+  return !!getAuthToken();
+}
+
+// Get current user from storage
+function getCurrentUser() {
+  const user = localStorage.getItem('currentUser');
+  return user ? JSON.parse(user) : null;
+}
+
+// Save user data to localStorage (legacy support)
 function saveUserData(email, password) {
-  // Get existing users or create empty object
   let users = JSON.parse(localStorage.getItem('userData') || '{}');
-  
-  // Add/update user data
   users[email] = {
     email: email,
     password: password,
     createdAt: new Date().toISOString(),
     lastLogin: new Date().toISOString()
   };
-  
-  // Save to localStorage (simulates saving to userData folder)
   localStorage.setItem('userData', JSON.stringify(users));
 }
 
-// Load all user data
+// Load all user data (legacy support)
 function loadUserData() {
   return JSON.parse(localStorage.getItem('userData') || '{}');
 }

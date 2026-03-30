@@ -1,0 +1,52 @@
+{
+  "servers": {
+    "auth": {
+      "name": "Authentication Server",
+      "port": 4000,
+      "script": "start-server.js",
+      "description": "AI-powered authentication API for user registration and login",
+      "endpoints": [
+        "POST /api/register - User registration",
+        "POST /api/login - User login with AI verification",
+        "POST /api/admin-login - Admin login",
+        "GET /api/admin-data - Admin activity logs",
+        "GET /api/admin/users - Get all users",
+        "DELETE /api/admin/users/:id - Delete user"
+      ],
+      "admin": {
+        "email": "admin@blackvortex.com",
+        "password": "admin123"
+      }
+    },
+    "multiplayer": {
+      "name": "Multiplayer Game Server",
+      "port": 4010,
+      "script": "multiplayer-server.js",
+      "description": "Real-time multiplayer FPS game server with matchmaking",
+      "endpoints": [
+        "GET /health - Server health check",
+        "GET /api/multiplayer/meta - Game metadata",
+        "POST /api/multiplayer/coach - AI coach tips",
+        "WebSocket / - Real-time game communication"
+      ],
+      "dependencies": [
+        "express",
+        "ws",
+        "@google/generative-ai (optional for AI coach)"
+      ]
+    }
+  },
+  "game": {
+    "modes": ["1v1", "2v2", "3v3", "4v4"],
+    "maps": ["Neon Foundry", "Dust Sector 9", "Skybreak Port", "Obsidian Labs"],
+    "loadouts": ["Assault Set", "Stealth Set", "Heavy Set", "Sniper Set", "Tactical Set"],
+    "operators": ["Rift", "Nova", "Ghost", "Bulwark"],
+    "skins": ["Neon Pulse", "Shadow Veil", "Crimson Edge", "Arctic Camo", "Gold Standard", "Digital Ghost"],
+    "voices": ["default", "aggressive", "tactical"]
+  },
+  "requirements": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0",
+    "memory": ">=2GB RAM recommended"
+  }
+}

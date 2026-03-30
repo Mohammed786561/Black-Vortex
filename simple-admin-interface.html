@@ -294,9 +294,8 @@
     </style>
 </head>
 <body>
-    <!-- Admin Login Form -->
     <div id="login-form" class="login-form">
-        <h2>🔒 Admin Access</h2>
+        <h2>ðŸ”’ Admin Access</h2>
         <p style="color: var(--text-muted); margin-bottom: 30px;">Enter admin credentials to access user management</p>
         
         
@@ -314,7 +313,6 @@
         </div>
     </div>
 
-    <!-- Admin Dashboard -->
     <div id="admin-dashboard" class="hidden">
         <header class="admin-header">
             <h1 class="admin-title">Black Vortex <span>Admin Panel</span></h1>
@@ -339,7 +337,6 @@
             </aside>
 
             <main class="main-content">
-                <!-- Users Tab -->
                 <div id="users-tab">
                     <h2 style="margin-top: 0; color: var(--accent-color);">User Management</h2>
                     
@@ -376,14 +373,11 @@
                                     <th>Actions</th>
                                 </tr>
                             </thead>
-                            <tbody id="users-table-body">
-                                <!-- Users will be loaded here -->
-                            </tbody>
+                            <tbody id="users-table-body"></tbody>
                         </table>
                     </div>
                 </div>
 
-                <!-- Statistics Tab -->
                 <div id="stats-tab" class="hidden">
                     <h2 style="margin-top: 0; color: var(--accent-color);">System Statistics</h2>
                     
@@ -408,13 +402,10 @@
 
                     <div style="margin-top: 30px;">
                         <h3 style="color: var(--accent-color);">Recent Activity</h3>
-                        <div id="recent-activity" style="margin-top: 15px;">
-                            <!-- Recent activity will be loaded here -->
-                        </div>
+                        <div id="recent-activity" style="margin-top: 15px;"></div>
                     </div>
                 </div>
 
-                <!-- Logs Tab -->
                 <div id="logs-tab" class="hidden">
                     <h2 style="margin-top: 0; color: var(--accent-color);">Activity Logs</h2>
                     
@@ -430,9 +421,7 @@
                                     <th>Timestamp</th>
                                 </tr>
                             </thead>
-                            <tbody id="logs-table-body">
-                                <!-- Logs will be loaded here -->
-                            </tbody>
+                            <tbody id="logs-table-body"></tbody>
                         </table>
                     </div>
                 </div>
@@ -445,7 +434,6 @@
         let users = [];
         let logs = [];
 
-        // Admin Login
         async function adminLogin() {
             const email = document.getElementById('admin-email').value;
             const password = document.getElementById('admin-password').value;
@@ -478,7 +466,6 @@
             }
         }
 
-        // Admin Logout
         function logoutAdmin() {
             isAdminLoggedIn = false;
             document.getElementById('login-form').classList.remove('hidden');
@@ -487,7 +474,6 @@
             document.getElementById('admin-password').value = '';
         }
 
-        // Load Users
         async function loadUsers() {
             if (!isAdminLoggedIn) return;
 
@@ -520,7 +506,6 @@
                             tbody.appendChild(row);
                         });
 
-                        // Update stats
                         document.getElementById('total-users').textContent = users.length;
                         document.getElementById('total-admins').textContent = users.filter(u => u.email === 'admin@blackvortex.com').length;
                         document.getElementById('total-regular').textContent = users.filter(u => u.email !== 'admin@blackvortex.com').length;
@@ -536,7 +521,6 @@
             }
         }
 
-        // Load Statistics
         function loadStats() {
             if (!isAdminLoggedIn) return;
 
@@ -545,7 +529,6 @@
             document.getElementById('stat-total-regular').textContent = users.filter(u => u.role !== 'admin').length;
             document.getElementById('stat-recent-reg').textContent = users.length;
 
-            // Display recent registrations
             const activityDiv = document.getElementById('recent-activity');
             activityDiv.innerHTML = '';
             
@@ -564,7 +547,6 @@
             });
         }
 
-        // Load Logs
         function loadLogs() {
             if (!isAdminLoggedIn) return;
 
@@ -587,7 +569,6 @@
             }
         }
 
-        // Delete User
         function deleteUser(userId) {
             if (!isAdminLoggedIn) return;
 
@@ -600,15 +581,12 @@
             loadUsers();
         }
 
-        // Tab Switching
         function switchTab(tabName) {
-            // Update navigation
             document.querySelectorAll('.nav-item').forEach(item => {
                 item.classList.remove('active');
             });
             event.target.classList.add('active');
 
-            // Show/hide content
             document.getElementById('users-tab').classList.add('hidden');
             document.getElementById('stats-tab').classList.add('hidden');
             document.getElementById('logs-tab').classList.add('hidden');
@@ -625,14 +603,12 @@
             }
         }
 
-        // Utility Functions
         function formatDate(dateString) {
             if (!dateString) return 'Unknown';
             const date = new Date(dateString);
             return date.toLocaleString();
         }
 
-        // Search Users
         document.getElementById('search-users').addEventListener('input', function(e) {
             const searchTerm = e.target.value.toLowerCase();
             const rows = document.querySelectorAll('#users-table-body tr');
@@ -649,7 +625,6 @@
             });
         });
 
-        // Clear default credentials
         window.addEventListener('load', () => {
             document.getElementById('admin-email').value = '';
             document.getElementById('admin-password').value = '';
