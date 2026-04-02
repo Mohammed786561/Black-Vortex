@@ -2,11 +2,708 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta http-equiv="refresh" content="0; url=index.html">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Redirecting to Black Vortex</title>
+  <title>Black Vortex - Offline Practice</title>
+  <style>
+    :root {
+      --panel: rgba(8, 16, 25, 0.78);
+      --line: rgba(255,255,255,0.1);
+      --text: #eef7ff;
+      --muted: #9db4c6;
+      --accent: #59d0ff;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(89, 208, 255, 0.2), transparent 30%),
+        radial-gradient(circle at bottom right, rgba(255, 95, 126, 0.18), transparent 28%),
+        linear-gradient(180deg, #04080c 0%, #08111a 100%);
+    }
+    .shell {
+      width: min(1200px, calc(100vw - 32px));
+      margin: 0 auto;
+      padding: 24px 0 40px;
+    }
+    .hero, .panel, .profile, .launch {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      backdrop-filter: blur(14px);
+      box-shadow: 0 18px 60px rgba(0,0,0,0.28);
+    }
+    .hero {
+      padding: 32px;
+      margin-bottom: 22px;
+      display: grid;
+      grid-template-columns: 1.4fr 1fr;
+      gap: 20px;
+    }
+    .eyebrow {
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    h1 {
+      margin: 10px 0 12px;
+      font-size: clamp(44px, 7vw, 82px);
+      line-height: 0.95;
+      text-transform: uppercase;
+      letter-spacing: 3px;
+    }
+    .hero p, .panel p { color: var(--muted); line-height: 1.6; }
+    .hero-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 18px;
+    }
+    .info-box {
+      padding: 14px;
+      border-radius: 18px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    .info-box span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+    .info-box strong { font-size: 24px; }
+    .preview {
+      border-radius: 22px;
+      padding: 18px;
+      background:
+        linear-gradient(160deg, rgba(89,208,255,0.18), rgba(255,95,126,0.18)),
+        rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 280px;
+    }
+    .preview-map {
+      padding: 18px;
+      border-radius: 18px;
+      background: rgba(2, 7, 11, 0.42);
+      border: 1px solid rgba(255,255,255,0.08);
+      min-height: 180px;
+      display: flex;
+      align-items: end;
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 22px;
+    }
+    .profile { padding: 22px; height: fit-content; }
+    .profile h2, .panel h2 {
+      margin: 0 0 14px;
+      font-size: 16px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .statline { display: flex; justify-content: space-between; margin: 12px 0; }
+    .statline strong { color: var(--accent); }
+    .history {
+      margin-top: 18px;
+      display: grid;
+      gap: 10px;
+    }
+    .history-item {
+      padding: 12px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    .history-item strong {
+      display: block;
+      color: var(--accent);
+      margin-bottom: 4px;
+    }
+    .history-item small {
+      color: var(--muted);
+      line-height: 1.4;
+    }
+    .panel { padding: 22px; }
+    .selector-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+    }
+    .choice {
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.04);
+      padding: 14px;
+      cursor: pointer;
+      transition: transform 0.16s ease, border-color 0.16s ease, background 0.16s ease;
+    }
+    .choice:hover { transform: translateY(-2px); border-color: rgba(89,208,255,0.4); }
+    .choice.active {
+      border-color: rgba(89,208,255,0.7);
+      background: rgba(89,208,255,0.12);
+      box-shadow: 0 0 0 1px rgba(89,208,255,0.24) inset;
+    }
+    .choice strong { display: block; margin-bottom: 6px; }
+    .choice small { color: var(--muted); line-height: 1.5; }
+    .field-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+    }
+    .field {
+      display: grid;
+      gap: 8px;
+    }
+    .field label {
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      font-weight: 700;
+    }
+    .field input, .field select {
+      width: 100%;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.05);
+      color: var(--text);
+      padding: 14px 16px;
+      font-size: 15px;
+    }
+    .launch {
+      margin-top: 22px;
+      padding: 22px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 20px;
+      align-items: center;
+    }
+    button {
+      border: 0;
+      border-radius: 999px;
+      padding: 16px 24px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      color: #08131d;
+      background: linear-gradient(135deg, var(--accent), #8be6ff);
+    }
+    .secondary {
+      color: var(--text);
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .launch-summary {
+      display: grid;
+      gap: 8px;
+      color: var(--muted);
+    }
+    .launch-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+    @media (max-width: 900px) {
+      .hero, .grid, .launch { grid-template-columns: 1fr; display: grid; }
+      .launch-actions { justify-content: stretch; }
+    }
+    
+    /* Mobile Responsive Design */
+    @media (max-width: 768px) {
+      .shell {
+        width: calc(100vw - 16px);
+        padding: 12px 0 24px;
+      }
+      
+      .hero {
+        padding: 20px;
+        margin-bottom: 16px;
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+      
+      h1 {
+        font-size: clamp(32px, 8vw, 48px);
+        letter-spacing: 2px;
+      }
+      
+      .hero-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+      }
+      
+      .info-box {
+        padding: 10px;
+        border-radius: 12px;
+      }
+      
+      .info-box strong {
+        font-size: 20px;
+      }
+      
+      .preview {
+        min-height: auto;
+        padding: 14px;
+        border-radius: 16px;
+      }
+      
+      .preview-map {
+        font-size: 20px;
+        padding: 12px;
+        min-height: auto;
+      }
+      
+      .grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+      
+      .profile {
+        padding: 16px;
+        order: 2;
+      }
+      
+      .panel {
+        padding: 16px;
+        margin-top: 16px !important;
+      }
+      
+      .panel h2 {
+        font-size: 14px;
+      }
+      
+      .selector-grid {
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 8px;
+      }
+      
+      .choice {
+        padding: 10px;
+        border-radius: 12px;
+      }
+      
+      .choice strong {
+        font-size: 14px;
+      }
+      
+      .choice small {
+        font-size: 11px;
+      }
+      
+      .field-grid {
+        grid-template-columns: 1fr;
+        gap: 8px;
+      }
+      
+      .field input, .field select {
+        padding: 12px;
+        font-size: 14px;
+        border-radius: 12px;
+      }
+      
+      .launch {
+        padding: 16px;
+        margin-top: 16px;
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+      
+      .launch-actions {
+        flex-direction: column;
+        width: 100%;
+      }
+      
+      .launch-actions button {
+        width: 100%;
+        padding: 14px 20px;
+        font-size: 14px;
+      }
+      
+      button {
+        padding: 14px 20px;
+        font-size: 14px;
+        border-radius: 12px;
+      }
+      
+      .history-item {
+        padding: 10px;
+        border-radius: 10px;
+      }
+      
+      .history-item strong {
+        font-size: 13px;
+      }
+      
+      .history-item small {
+        font-size: 11px;
+      }
+      
+      .statline {
+        margin: 8px 0;
+      }
+      
+      .statline strong {
+        font-size: 16px;
+      }
+      
+      /* Touch-friendly improvements */
+      .choice, button, input, select {
+        min-height: 44px; /* Touch target size */
+      }
+      
+      /* Prevent horizontal scroll */
+      body {
+        overflow-x: hidden;
+      }
+    }
+    
+    /* Extra small devices */
+    @media (max-width: 480px) {
+      .hero-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .selector-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      h1 {
+        font-size: 28px;
+      }
+      
+      .preview-map {
+        font-size: 16px;
+      }
+      
+      .launch-summary span {
+        font-size: 12px;
+      }
+    }
+    
+    /* Landscape mobile */
+    @media (max-width: 768px) and (orientation: landscape) {
+      .hero {
+        padding: 12px;
+      }
+      
+      h1 {
+        font-size: 24px;
+      }
+      
+      .selector-grid {
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      }
+    }
+    
+    /* Hide any red error elements while keeping functionality */
+    .error-message, .red-box, [style*="color: red"], [style*="background-color: red"], [style*="border-color: red"] {
+      display: none !important;
+      visibility: hidden !important;
+    }
+  </style>
 </head>
 <body>
-  <script>window.location.replace('index.html');</script>
+  <div class="shell">
+    <section class="hero">
+      <div>
+        <div class="eyebrow">Offline Practice Mode</div>
+        <h1>Black Vortex</h1>
+        <p>You're in offline practice mode. This is a standalone version of the game where you can practice your skills without needing an internet connection. Use the settings below to customize your practice session.</p>
+        <div class="hero-grid">
+          <div class="info-box"><span>Mode</span><strong>Offline</strong></div>
+          <div class="info-box"><span>Map</span><strong id="practiceMap">Neon Foundry</strong></div>
+          <div class="info-box"><span>Loadout</span><strong id="practiceLoadout">Assault Set</strong></div>
+        </div>
+      </div>
+      <div class="preview">
+        <div class="preview-map" id="previewMap">Neon Foundry</div>
+        <div>
+          <div class="eyebrow">Practice Session</div>
+          <p id="previewText">Offline practice on Neon Foundry with the Assault Set. Perfect for warming up your aim and learning the map layout.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="grid">
+      <aside class="profile">
+        <h2>Practice Settings</h2>
+        <div class="statline"><span>Player</span><strong id="practicePlayer">Operative</strong></div>
+        <div class="statline"><span>Operator</span><strong id="practiceOperator">Nova</strong></div>
+        <div class="statline"><span>Skin</span><strong id="practiceSkin">Neon Pulse</strong></div>
+        <div class="statline"><span>Primary Gun</span><strong id="practiceGun">M4A1</strong></div>
+        <h2 style="margin-top:22px;">Practice Tips</h2>
+        <div class="history">
+          <div class="history-item">
+            <strong>Warm-up Routine</strong>
+            <small>Start with basic movement and aim exercises. Focus on smooth mouse control and consistent crosshair placement.</small>
+          </div>
+          <div class="history-item">
+            <strong>Map Knowledge</strong>
+            <small>Learn the key angles, choke points, and flanking routes. Practice quick rotations between important positions.</small>
+          </div>
+          <div class="history-item">
+            <strong>Weapon Handling</strong>
+            <small>Get comfortable with your chosen loadout's recoil pattern and fire rate. Practice controlled bursts and spray patterns.</small>
+          </div>
+        </div>
+      </aside>
+
+      <div>
+        <section class="panel">
+          <h2>Choose Map</h2>
+          <p>Each map offers different layouts and strategic opportunities for practice.</p>
+          <div class="selector-grid" id="mapChoices"></div>
+        </section>
+
+        <section class="panel" style="margin-top:22px;">
+          <h2>Choose Loadout</h2>
+          <p>Each loadout changes your movement speed, health, and weapon handling for different practice experiences.</p>
+          <div class="selector-grid" id="loadoutChoices"></div>
+          <div id="gunStats" style="margin-top:14px; color:#9db4c6;"></div>
+        </section>
+
+        <section class="panel" style="margin-top:22px;">
+          <h2>Choose Primary Gun</h2>
+          <p>Practice with different weapon types to improve your overall gunplay skills.</p>
+          <div class="selector-grid" id="gunChoices"></div>
+        </section>
+
+        <section class="panel" style="margin-top:22px;">
+          <h2>Choose Operator</h2>
+          <p>Each operator gives you a different visual style and role feel for your practice session.</p>
+          <div class="selector-grid" id="operatorChoices"></div>
+        </section>
+
+        <section class="panel" style="margin-top:22px;">
+          <h2>Customize Character</h2>
+          <p>Personalize your operator's appearance to make your practice sessions more immersive.</p>
+          <div class="character-customizer">
+            <!-- Skin Selection -->
+            <div class="selector-grid" id="skinChoices"></div>
+
+            <!-- Voice Lines -->
+            <div class="field-grid" style="margin-top: 14px;">
+              <div class="field">
+                <label for="voiceLines">Voice Lines</label>
+                <select id="voiceLines">
+                  <option value="default">Default</option>
+                  <option value="aggressive">Aggressive</option>
+                  <option value="tactical">Tactical</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel" style="margin-top:22px;">
+          <h2>Player Setup</h2>
+          <p>Set your display name for this practice session.</p>
+          <div class="field-grid">
+            <div class="field">
+              <label for="playerName">Player Name</label>
+              <input id="playerName" type="text" maxlength="24" placeholder="Operative">
+            </div>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <section class="launch">
+      <div class="launch-summary" id="launchSummary"></div>
+      <div class="launch-actions">
+        <button id="startPractice">Start Practice Session</button>
+        <button class="secondary" id="backToHub">Back to Main Hub</button>
+        <button class="secondary" id="resetPractice">Reset Settings</button>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const maps = {
+      'Neon Foundry': 'Molten core lanes, split catwalks, and a dangerous center route.',
+      'Dust Sector 9': 'Long desert lines with refinery cover and hard flank timings.',
+      'Skybreak Port': 'Rooftop cargo lanes, exposed crossings, and vertical pressure.',
+      'Obsidian Labs': 'Close mid-range corridors with mirrored entries and quick recovery paths.'
+    };
+    const loadouts = {
+      'Sniper Set': 'High damage, low health, and long-angle control.',
+      'Heavy Set': 'Big health pool and close-range stopping power.',
+      'Stealth Set': 'Fast movement and aggressive spray pressure.',
+      'Assault Set': 'Balanced all-around rifle handling and sustain.',
+      'Tactical Set': 'Sharper precision and disciplined recoil control.'
+    };
+    const guns = {
+      'AK-47': { damage: 34, fireRate: 600, reloadTime: 2.8, summary: 'Heavy rifle recoil with strong close-mid pressure.' },
+      'M4A1': { damage: 29, fireRate: 760, reloadTime: 2.4, summary: 'Stable all-round rifle built for clean sustained fights.' },
+      'Vector SMG': { damage: 20, fireRate: 940, reloadTime: 2.1, summary: 'Fast spray weapon for aggressive entry routes.' },
+      'Rail Lance': { damage: 70, fireRate: 85, reloadTime: 3.1, summary: 'Long-range single-shot rifle for hold angles.' },
+      'Breach Shotgun': { damage: 16, fireRate: 90, reloadTime: 2.9, summary: 'Close-range burst weapon with lane denial power.' }
+    };
+    const operators = {
+      Rift: 'Aggressive entry fragger with a fast, sharp arena profile.',
+      Nova: 'Balanced frontline operator built for clean rifle fights.',
+      Ghost: 'Light-footed scout built around off-angle pressure.',
+      Bulwark: 'Heavy tactical operator with a plated defensive silhouette.'
+    };
+    const skins = {
+      'Neon Pulse': 'Electric blue and cyan accents that glow in low light.',
+      'Shadow Veil': 'Dark matte finish with subtle reflective highlights.',
+      'Crimson Edge': 'Bold red and black scheme with tactical detailing.',
+      'Arctic Camo': 'Frosty white and gray patterns for cold environments.',
+      'Gold Standard': 'Premium gold plating with polished chrome accents.',
+      'Digital Ghost': 'Holographic digital camouflage with shifting patterns.'
+    };
+    const state = {
+      map: 'Neon Foundry',
+      loadout: 'Assault Set',
+      primaryGun: 'M4A1',
+      operator: 'Nova',
+      skin: 'Neon Pulse',
+      voice: 'default'
+    };
+    
+    // Load saved settings from URL parameters or localStorage
+    const urlParams = new URLSearchParams(window.location.search);
+    const savedGame = JSON.parse(localStorage.getItem('blackVortexGame') || '{}');
+    
+    // Apply URL parameters if present, otherwise use saved settings
+    state.map = urlParams.get('map') || savedGame.map || state.map;
+    state.loadout = urlParams.get('loadout') || savedGame.loadout || state.loadout;
+    state.primaryGun = urlParams.get('primaryGun') || savedGame.primaryGun || state.primaryGun;
+    state.operator = urlParams.get('operator') || savedGame.operator || state.operator;
+    state.skin = urlParams.get('skin') || savedGame.skin || state.skin;
+    state.voice = urlParams.get('voice') || savedGame.voice || state.voice;
+    
+    const profile = JSON.parse(localStorage.getItem('blackVortexProfile') || '{"player":"Operative","operator":"Nova","skin":"Neon Pulse","voice":"default","primaryGun":"M4A1"}');
+    state.operator = profile.operator || state.operator;
+    state.skin = profile.skin || state.skin;
+    state.voice = profile.voice || state.voice;
+    state.primaryGun = profile.primaryGun || state.primaryGun;
+
+    function renderChoices(containerId, items, key) {
+      const container = document.getElementById(containerId);
+      container.innerHTML = Object.entries(items).map(([id, value]) => {
+        const active = state[key] === id ? 'active' : '';
+        const description = typeof value === 'string' ? value : value.summary;
+        const label = typeof value === 'string' ? id : value.name;
+        return `<div class="choice ${active}" data-key="${key}" data-id="${id}"><strong>${label}</strong><small>${description}</small></div>`;
+      }).join('');
+    }
+
+    function updateGunStats(selectedGun) {
+      const gun = guns[selectedGun];
+      document.getElementById('gunStats').innerHTML = `
+        <strong style="color:#59d0ff;">${selectedGun}</strong>
+        <div>Damage: ${gun.damage}</div>
+        <div>Fire Rate: ${gun.fireRate} RPM</div>
+        <div>Reload: ${gun.reloadTime}s</div>
+        <div>${gun.summary}</div>
+      `;
+    }
+
+    function syncPreview() {
+      const player = (document.getElementById('playerName')?.value || profile.player || 'Operative').trim() || 'Operative';
+      state.voice = document.getElementById('voiceLines')?.value || state.voice;
+      document.getElementById('previewMap').textContent = state.map;
+      document.getElementById('practiceMap').textContent = state.map;
+      document.getElementById('practiceLoadout').textContent = state.loadout;
+      document.getElementById('practicePlayer').textContent = player;
+      document.getElementById('practiceOperator').textContent = state.operator;
+      document.getElementById('practiceSkin').textContent = state.skin;
+      document.getElementById('practiceGun').textContent = state.primaryGun;
+      document.getElementById('previewText').textContent = `Offline practice on ${state.map} with the ${state.loadout}, ${state.primaryGun}, ${state.operator}, and ${state.skin}. ${maps[state.map]}`;
+      document.getElementById('launchSummary').innerHTML = `
+        <strong style="color:#59d0ff; font-size:22px;">Offline Practice</strong>
+        <span>Player: ${player}</span>
+        <span>Operator: ${state.operator}</span>
+        <span>Skin: ${state.skin}</span>
+        <span>Voice: ${state.voice}</span>
+        <span>Map: ${state.map}</span>
+        <span>Loadout: ${state.loadout}</span>
+        <span>Primary Gun: ${state.primaryGun}</span>
+        <span>Perfect for warming up your aim and learning the map layout.</span>
+      `;
+      renderChoices('mapChoices', maps, 'map');
+      renderChoices('loadoutChoices', loadouts, 'loadout');
+      renderChoices('gunChoices', guns, 'primaryGun');
+      renderChoices('operatorChoices', operators, 'operator');
+      renderChoices('skinChoices', skins, 'skin');
+      updateGunStats(state.primaryGun);
+      document.querySelectorAll('.choice').forEach(choice => {
+        choice.addEventListener('click', () => {
+          state[choice.dataset.key] = choice.dataset.id;
+          syncPreview();
+        });
+      });
+    }
+
+    // Set initial player name
+    document.getElementById('playerName').value = profile.player || 'Operative';
+    document.getElementById('voiceLines').value = state.voice;
+
+    syncPreview();
+
+    document.getElementById('playerName').addEventListener('input', syncPreview);
+    document.getElementById('voiceLines').addEventListener('change', syncPreview);
+
+    document.getElementById('startPractice').addEventListener('click', () => {
+      const player = (document.getElementById('playerName').value || profile.player || 'Operative').trim().slice(0, 24) || 'Operative';
+      
+      // Save current settings
+      profile.player = player;
+      profile.operator = state.operator;
+      profile.skin = state.skin;
+      profile.voice = state.voice;
+      profile.primaryGun = state.primaryGun;
+      localStorage.setItem('blackVortexProfile', JSON.stringify(profile));
+      
+      localStorage.setItem('blackVortexGame', JSON.stringify({
+        mode: 'practice',
+        map: state.map,
+        loadout: state.loadout,
+        primaryGun: state.primaryGun,
+        operator: state.operator,
+        skin: state.skin,
+        voice: state.voice,
+        player
+      }));
+      
+      // For now, just show a message since we don't have the actual game engine
+      alert(`Starting practice session!\n\nMap: ${state.map}\nLoadout: ${state.loadout}\nPrimary: ${state.primaryGun}\n\nNote: This is a placeholder for the actual game engine.`);
+    });
+
+    document.getElementById('backToHub').addEventListener('click', () => {
+      window.location.href = 'index.html';
+    });
+
+    document.getElementById('resetPractice').addEventListener('click', () => {
+      state.map = 'Neon Foundry';
+      state.loadout = 'Assault Set';
+      state.primaryGun = 'M4A1';
+      state.operator = 'Nova';
+      state.skin = 'Neon Pulse';
+      state.voice = 'default';
+      document.getElementById('playerName').value = profile.player || 'Operative';
+      document.getElementById('voiceLines').value = state.voice;
+      syncPreview();
+    });
+  </script>
 </body>
 </html>
