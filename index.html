@@ -397,6 +397,12 @@
       }
     }
     
+    /* Hide any red error elements while keeping functionality */
+    .error-message, .red-box, [style*="color: red"], [style*="background-color: red"], [style*="border-color: red"] {
+      display: none !important;
+      visibility: hidden !important;
+    }
+    
     /* Landscape mobile */
     @media (max-width: 768px) and (orientation: landscape) {
       .hero {
@@ -714,7 +720,7 @@
         voice: state.voice,
         player
       }));
-      window.location.href = `ultimate-black-vortex-fps.html?mode=practice&map=${encodeURIComponent(state.map)}&loadout=${encodeURIComponent(state.loadout)}`;
+      window.location.href = `black-vortex-fps.html?mode=practice&map=${encodeURIComponent(state.map)}&loadout=${encodeURIComponent(state.loadout)}`;
     });
 
     document.getElementById('resetButton').addEventListener('click', () => {
