@@ -1,0 +1,18 @@
+[
+  {
+    "id": 1,
+    "username": "demo",
+    "email": "demo@bvortex.local",
+    "hash": "$2b$10$9z8Z5K3jXqYvW2pR4tU6eO9mL1nK7jP3hV5bX8cD0fG2iA4eQ6wE",
+    "friends": [],
+    "selectedLoadout": null
+  },
+  {
+    "id": 2,
+    "username": "debug",
+    "email": "debug@bvortex.local",
+    "hash": "$2b$10$9z8Z5K3jXqYvW2pR4tU6eO9mL1nK7jP3hV5bX8cD0fG2iA4eQ6wE",
+    "friends": [],
+    "selectedLoadout": null
+  }
+]

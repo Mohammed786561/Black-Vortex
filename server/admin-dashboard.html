@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Black Vortex - Admin Dashboard</title>
+  <style>
+    :root {
+      --bg: #0a0f14;
+      --panel: rgba(15, 25, 35, 0.95);
+      --border: rgba(89, 208, 255, 0.25);
+      --text: #e8f4ff;
+      --muted: #7a9bb5;
+      --accent: #59d0ff;
+      --success: #66f1a7;
+      --warning: #ffd36a;
+      --danger: #ff6b6b;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #0a0f14 0%, #1a2332 100%);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    .header {
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
+      padding: 20px 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      backdrop-filter: blur(10px);
+    }
+    .header h1 { 
+      color: var(--accent); 
+      font-size: 24px;
+      letter-spacing: 2px;
+    }
+    .header-actions { display: flex; gap: 10px; }
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+    .btn-primary {
+      background: var(--accent);
+      color: #000;
+    }
+    .btn-primary:hover { background: #7de0ff; }
+    .btn-danger {
+      background: var(--danger);
+      color: #fff;
+    }
+    .btn-danger:hover { background: #ff8888; }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 20px;
+      padding: 30px;
+    }
+    .stat-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      backdrop-filter: blur(10px);
+      transition: transform 0.3s ease;
+    }
+    .stat-card:hover { transform: translateY(-5px); }
+    .stat-card h3 {
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin-bottom: 12px;
+    }
+    .stat-card .value {
+      font-size: 36px;
+      font-weight: bold;
+      color: var(--accent);
+    }
+    .stat-card.success .value { color: var(--success); }
+    .stat-card.warning .value { color: var(--warning); }
+    .stat-card.danger .value { color: var(--danger); }
+    .section {
+      padding: 0 30px 30px;
+    }
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .section h2 {
+      color: var(--accent);
+      font-size: 20px;
+      letter-spacing: 1px;
+    }
+    .table-container {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      backdrop-filter: blur(10px);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      padding: 16px 20px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    th {
+      background: rgba(89, 208, 255, 0.1);
+      color: var(--accent);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      font-weight: 600;
+    }
+    tr:hover { background: rgba(89, 208, 255, 0.05); }
+    .status-online { 
+      color: var(--success); 
+      font-weight: 600;
+    }
+    .status-offline { 
+      color: var(--muted); 
+    }
+    .badge {
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    .badge-success {
+      background: rgba(102, 241, 167, 0.2);
+      color: var(--success);
+    }
+    .badge-warning {
+      background: rgba(255, 211, 106, 0.2);
+      color: var(--warning);
+    }
+    .badge-danger {
+      background: rgba(255, 107, 107, 0.2);
+      color: var(--danger);
+    }
+    .tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .tab {
+      padding: 12px 24px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .tab.active {
+      background: var(--accent);
+      color: #000;
+      border-color: var(--accent);
+    }
+    .tab:hover:not(.active) {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: var(--muted);
+    }
+    .error {
+      background: rgba(255, 107, 107, 0.1);
+      border: 1px solid var(--danger);
+      border-radius: 8px;
+      padding: 16px;
+      color: var(--danger);
+      margin: 20px 30px;
+    }
+    .refresh-indicator {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border: 2px solid var(--accent);
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-right: 8px;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>🎮 BLACK VORTEX ADMIN</h1>
+    <div class="header-actions">
+      <button class="btn btn-primary" onclick="refreshAll()">
+        <span id="refreshIcon"></span>Refresh All
+      </button>
+      <button class="btn btn-danger" onclick="logout()">Logout</button>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat-card">
+      <h3>Total Users</h3>
+      <div class="value" id="totalUsers">-</div>
+    </div>
+    <div class="stat-card success">
+      <h3>Online Now</h3>
+      <div class="value" id="onlineUsers">-</div>
+    </div>
+    <div class="stat-card warning">
+      <h3>Total Matches</h3>
+      <div class="value" id="totalMatches">-</div>
+    </div>
+    <div class="stat-card">
+      <h3>Active Sessions</h3>
+      <div class="value" id="activeSessions">-</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('users')">Users</button>
+      <button class="tab" onclick="switchTab('activity')">Activity Log</button>
+      <button class="tab" onclick="switchTab('leaderboard')">Leaderboard</button>
+      <button class="tab" onclick="switchTab('matches')">Recent Matches</button>
+    </div>
+
+    <div id="users-tab" class="tab-content active">
+      <div class="section-header">
+        <h2>Registered Users</h2>
+      </div>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Level</th>
+              <th>XP</th>
+              <th>K/D</th>
+              <th>Status</th>
+              <th>Last Login</th>
+            </tr>
+          </thead>
+          <tbody id="usersTable">
+            <tr><td colspan="7" class="loading">Loading users...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="activity-tab" class="tab-content">
+      <div class="section-header">
+        <h2>Activity Log</h2>
+      </div>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Event</th>
+              <th>User</th>
+              <th>IP Address</th>
+              <th>Details</th>
+            </tr>
+          </thead>
+          <tbody id="activityTable">
+            <tr><td colspan="5" class="loading">Loading activity...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="leaderboard-tab" class="tab-content">
+      <div class="section-header">
+        <h2>Top Players</h2>
+      </div>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Rank</th>
+              <th>Player</th>
+              <th>Level</th>
+              <th>XP</th>
+              <th>Kills</th>
+              <th>Deaths</th>
+              <th>K/D Ratio</th>
+            </tr>
+          </thead>
+          <tbody id="leaderboardTable">
+            <tr><td colspan="7" class="loading">Loading leaderboard...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="matches-tab" class="tab-content">
+      <div class="section-header">
+        <h2>Recent Matches</h2>
+      </div>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Mode</th>
+              <th>Map</th>
+              <th>Result</th>
+              <th>Score</th>
+              <th>Kills</th>
+              <th>Duration</th>
+            </tr>
+          </thead>
+          <tbody id="matchesTable">
+            <tr><td colspan="7" class="loading">Loading matches...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = 'http://localhost:4000';
+    let authToken = localStorage.getItem('adminToken');
+
+    // Check authentication
+    if (!authToken) {
+      window.location.href = 'index.html';
+    }
+
+    // API helper
+    async function apiCall(endpoint) {
+      try {
+        const response = await fetch(`${API_BASE}${endpoint}`, {
+          headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        if (!response.ok) throw new Error('API call failed');
+        return await response.json();
+      } catch (error) {
+        console.error('API Error:', error);
+        throw error;
+      }
+    }
+
+    // Refresh all data
+    async function refreshAll() {
+      document.getElementById('refreshIcon').innerHTML = '<span class="refresh-indicator"></span>';
+      
+      try {
+        await Promise.all([
+          loadStats(),
+          loadUsers(),
+          loadLeaderboard()
+        ]);
+      } catch (error) {
+        showError('Failed to refresh data: ' + error.message);
+      } finally {
+        document.getElementById('refreshIcon').innerHTML = '';
+      }
+    }
+
+    // Load statistics
+    async function loadStats() {
+      try {
+        const health = await apiCall('/health');
+        document.getElementById('totalMatches').textContent = health.matches || 0;
+        
+        // Mock data for demo - replace with actual API calls
+        document.getElementById('totalUsers').textContent = '24';
+        document.getElementById('onlineUsers').textContent = '8';
+        document.getElementById('activeSessions').textContent = '12';
+      } catch (error) {
+        console.error('Failed to load stats:', error);
+      }
+    }
+
+    // Load users
+    async function loadUsers() {
+      try {
+        const data = await apiCall('/api/leaderboard?limit=50');
+        const tbody = document.getElementById('usersTable');
+        
+        if (data.leaderboard && data.leaderboard.length > 0) {
+          tbody.innerHTML = data.leaderboard.map((user, index) => `
+            <tr>
+              <td>${user.name}</td>
+              <td>user${index + 1}@example.com</td>
+              <td>${user.level}</td>
+              <td>${user.xp.toLocaleString()}</td>
+              <td>${user.kdRatio}</td>
+              <td><span class="badge badge-success">Online</span></td>
+              <td>${new Date().toLocaleString()}</td>
+            </tr>
+          `).join('');
+        } else {
+          tbody.innerHTML = '<tr><td colspan="7" class="loading">No users found</td></tr>';
+        }
+      } catch (error) {
+        document.getElementById('usersTable').innerHTML = 
+          '<tr><td colspan="7" class="loading">Failed to load users</td></tr>';
+      }
+    }
+
+    // Load leaderboard
+    async function loadLeaderboard() {
+      try {
+        const data = await apiCall('/api/leaderboard?limit=20');
+        const tbody = document.getElementById('leaderboardTable');
+        
+        if (data.leaderboard && data.leaderboard.length > 0) {
+          tbody.innerHTML = data.leaderboard.map((user, index) => `
+            <tr>
+              <td><span class="badge ${index < 3 ? 'badge-warning' : 'badge-success'}">#${user.rank}</span></td>
+              <td>${user.name}</td>
+              <td>${user.level}</td>
+              <td>${user.xp.toLocaleString()}</td>
+              <td>${user.totalKills}</td>
+              <td>${user.totalDeaths}</td>
+              <td>${user.kdRatio}</td>
+            </tr>
+          `).join('');
+        } else {
+          tbody.innerHTML = '<tr><td colspan="7" class="loading">No data available</td></tr>';
+        }
+      } catch (error) {
+        document.getElementById('leaderboardTable').innerHTML = 
+          '<tr><td colspan="7" class="loading">Failed to load leaderboard</td></tr>';
+      }
+    }
+
+    // Switch tabs
+    function switchTab(tabName) {
+      // Update tab buttons
+      document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+      event.target.classList.add('active');
+      
+      // Update tab content
+      document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+      document.getElementById(`${tabName}-tab`).classList.add('active');
+    }
+
+    // Show error
+    function showError(message) {
+      const errorDiv = document.createElement('div');
+      errorDiv.className = 'error';
+      errorDiv.textContent = message;
+      document.body.insertBefore(errorDiv, document.body.firstChild);
+      
+      setTimeout(() => errorDiv.remove(), 5000);
+    }
+
+    // Logout
+    function logout() {
+      localStorage.removeItem('adminToken');
+      window.location.href = 'index.html';
+    }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+      refreshAll();
+      // Auto-refresh every 30 seconds
+      setInterval(refreshAll, 30000);
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,60 @@
+{
+  "name": "black-vortex-servers",
+  "version": "2.0.0",
+  "description": "Complete Black Vortex game server suite with authentication and multiplayer",
+  "main": "start-server.js",
+  "scripts": {
+    "start": "node start-server.js",
+    "auth": "node auth-api.js",
+    "multiplayer": "node multiplayer-server-improved.js",
+    "multiplayer-legacy": "node multiplayer-server.js",
+    "dev": "nodemon start-server.js",
+    "dev-auth": "nodemon auth-api.js",
+    "dev-multiplayer": "nodemon multiplayer-server-improved.js",
+    "install-deps": "npm install",
+    "setup": "node setup.js",
+    "health-check": "node -e \"console.log('Auth Server: http://localhost:4000/health'); console.log('Multiplayer Server: http://localhost:4010/health');\"",
+    "test": "echo \"No tests specified\" && exit 0"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "ws": "^8.18.0",
+    "cors": "^2.8.5",
+    "helmet": "^7.1.0",
+    "express-rate-limit": "^7.1.5",
+    "bcrypt": "^5.1.1",
+    "jsonwebtoken": "^9.0.2",
+    "@google/generative-ai": "^0.2.0",
+    "socket.io": "^4.7.4",
+    "mongoose": "^8.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  },
+  "keywords": [
+    "multiplayer",
+    "fps",
+    "game-server",
+    "websocket",
+    "authentication",
+    "ai",
+    "real-time",
+    "matchmaking"
+  ],
+  "author": "Black Vortex Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-repo/black-vortex"
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  },
+  "files": [
+    "start-server.js",
+    "multiplayer-server.js",
+    "package.json",
+    "README.md"
+  ]
+}
